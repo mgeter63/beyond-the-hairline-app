@@ -1,0 +1,24 @@
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #F4F0FA;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  background: #F4F0FA;
+  background-image: none !important;
+}
+
