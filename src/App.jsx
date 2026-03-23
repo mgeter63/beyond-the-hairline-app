@@ -660,6 +660,24 @@ function AppMain({ session }) {
     })();
   }, []);
 
+  // Auto-populate "before" visit notes with most recent symptom log summary
+  useEffect(() => {
+    if (visitNotes.before === "" && history.length > 0) {
+      const e = history[0];
+      const topSymptoms = SYMPTOMS
+        .map(s => ({ label: s.label, score: e.scores[s.id] || 0 }))
+        .filter(s => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+      const topLines = topSymptoms.map(s => "  - " + s.label + ": " + SL(s.score) + " (" + s.score + "/5)").join("\n");
+      const summary = "Last symptom log: " + e.fullDate + "\n" +
+        "Average score: " + e.avgScore + "/5\n" +
+        "Risk level: " + e.riskLevel.charAt(0).toUpperCase() + e.riskLevel.slice(1) + "\n" +
+        "Top symptoms:\n" + (topLines || "  (none scored)");
+      setVisitNotes(p => ({ ...p, before: summary }));
+    }
+  }, [history]);
+
   // Load saved photos from Supabase on mount, fall back to localStorage
   useEffect(() => {
     (async () => {
