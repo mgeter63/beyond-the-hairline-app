@@ -73,7 +73,7 @@ const C_OPTS_ALL = ["None","Chemical relaxer with lye","Chemical relaxer without
 const C_OPTS_BY_IDENTITY = {
   "Black or African American": ["None","Chemical relaxer with lye","Chemical relaxer without lye","Texturizer","Hair color or dye","Keratin treatment","Henna treatment","Transitioning from relaxed to natural","Other"],
   "White or Caucasian": ["None","Hair color or dye","Keratin treatment","Bleach","Perming treatment","Semi-permanent color","Other"],
-  "Hispanic or Latina": ["None","Hair color or dye","Keratin treatment","Chemical relaxer with lye","Bleach","Other"],
+  "Hispanic or Latina": ["None","Hair color or dye","Keratin treatment","Bleach","Other"],
   "Asian or Pacific Islander": ["None","Hair color or dye","Keratin treatment","Perming treatment","Semi-permanent color","Other"],
   "Native American or Alaska Native": ["None","Hair color or dye","Other"],
   "Middle Eastern or North African": ["None","Hair color or dye","Keratin treatment","Henna treatment","Other"],
@@ -84,7 +84,7 @@ const W_OPTS_ALL = ["None","Lace front wig glued","Lace front wig grip band","Fu
 const W_OPTS_BY_IDENTITY = {
   "Black or African American": ["None","Lace front wig glued","Lace front wig grip band","Full lace wig","U-part wig","V-part wig","Sew-in weave with leave-out","Sew-in weave full","Crochet extensions","Clip-in extensions","Tape-in extensions","Bonded extensions","Other"],
   "White or Caucasian": ["None","Clip-in extensions","Tape-in extensions","Halo extensions","Ponytail extensions","Other"],
-  "Hispanic or Latina": ["None","Clip-in extensions","Tape-in extensions","Sew-in weave full","Lace front wig glued","Other"],
+  "Hispanic or Latina": ["None","Clip-in extensions","Tape-in extensions","Other"],
   "Asian or Pacific Islander": ["None","Clip-in extensions","Tape-in extensions","Half wig","Ponytail extensions","Other"],
   "Native American or Alaska Native": ["None","Clip-in extensions","Other"],
   "Middle Eastern or North African": ["None","Clip-in extensions","Tape-in extensions","Half wig","Other"],
@@ -1341,15 +1341,13 @@ function AppMain({ session }) {
             {/* Race and ethnicity selection */}
             <div style={{...card,marginBottom:18,border:ethnicSaved?"1px solid #DDD0F0":"2px solid #9B7FC0"}}>
               <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",marginBottom:6}}>How do you identify?</h3>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginBottom:14,lineHeight:1.5}}>Select all that apply. This helps us show the most relevant hair care guidance for you.</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginBottom:14,lineHeight:1.5}}>Select the option that best describes you. This helps us show the most relevant hair care guidance for you.</p>
               <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:14}}>
                 {["Black or African American","White or Caucasian","Hispanic or Latina","Asian or Pacific Islander","Native American or Alaska Native","Middle Eastern or North African","Multiracial or Mixed Heritage","Another identity not listed here","I prefer not to say"].map(opt=>{
                   const sel = ethnicIdentity.includes(opt);
                   return (
                     <button key={opt} type="button" onClick={()=>{
-                      const updated = sel ? ethnicIdentity.filter(v=>v!==opt) : [...ethnicIdentity, opt];
-                      if(opt==="I prefer not to say" && !sel) { setEthnicIdentity(["I prefer not to say"]); }
-                      else { setEthnicIdentity(updated.filter(v=>v!=="I prefer not to say")); }
+                      setEthnicIdentity([opt]);
                     }}
                       style={{background:sel?"rgba(91,75,122,0.08)":"transparent",color:"#3D2B5C",
                         border:"1px solid "+(sel?"#5B4B7A":"#DDD0F0"),borderRadius:8,
