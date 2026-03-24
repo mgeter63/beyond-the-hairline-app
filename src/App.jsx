@@ -649,9 +649,11 @@ function MFASetup({ onDone, onCancel }) {
 
 // Coming Soon page for non-logged-in visitors
 function ComingSoon({ onBetaAccess }) {
-  const [showGate, setShowGate] = useState(false);
   const [gateCode, setGateCode] = useState("");
   const [gateError, setGateError] = useState("");
+  const [reqName, setReqName] = useState("");
+  const [reqEmail, setReqEmail] = useState("");
+  const [reqSent, setReqSent] = useState(false);
 
   const checkCode = () => {
     if (gateCode === "BTH2026beta") {
@@ -662,15 +664,26 @@ function ComingSoon({ onBetaAccess }) {
     }
   };
 
+  const submitRequest = () => {
+    if (!reqName.trim() || !reqEmail.trim()) return;
+    const subject = encodeURIComponent("BTH Beta Access Request");
+    const body = encodeURIComponent("Name: " + reqName.trim() + "\nEmail: " + reqEmail.trim() + "\n\nThis person is requesting access to the Beyond the Hairline private beta.");
+    window.open("mailto:mgeter@601sistas.com?subject=" + subject + "&body=" + body, "_self");
+    setReqSent(true);
+  };
+
+  const inputStyle = {width:"100%",padding:"11px 14px",borderRadius:8,border:"1px solid rgba(196,176,224,.3)",
+    background:"rgba(244,240,250,.08)",color:"#F4F0FA",fontFamily:"'DM Sans',sans-serif",fontSize:13,boxSizing:"border-box"};
+
   return (
     <div style={{minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",
-      backgroundImage:`url(${heroGroup})`,backgroundSize:"cover",backgroundPosition:"center"}}>
+      backgroundImage:`url(${heroGroup})`,backgroundSize:"cover",backgroundPosition:"center",overflowY:"auto"}}>
       <div style={{position:"absolute",inset:0,background:"rgba(51,30,74,0.88)"}}/>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
         @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
       `}</style>
-      <div style={{position:"relative",zIndex:1,textAlign:"center",padding:"40px 24px",maxWidth:520}}>
+      <div style={{position:"relative",zIndex:1,textAlign:"center",padding:"40px 24px",maxWidth:520,width:"100%"}}>
         <img src={LOGO} alt="Beyond the Hairline" style={{width:100,height:100,objectFit:"contain",margin:"0 auto 20px",display:"block",opacity:.95}}/>
         <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,5vw,44px)",fontWeight:800,color:"#F4F0FA",lineHeight:1.1,marginBottom:8,animation:"fadeUp .6s ease both"}}>
           Beyond the Hairline™
@@ -689,31 +702,52 @@ function ComingSoon({ onBetaAccess }) {
             mgeter@601sistas.com
           </a>
         </div>
-        <div style={{width:60,height:2,background:"linear-gradient(90deg,transparent,#F5B800,transparent)",margin:"0 auto 24px",borderRadius:2}}/>
 
-        {!showGate ? (
-          <button onClick={()=>{setShowGate(true);setGateError("");}}
-            style={{background:"none",border:"none",color:"rgba(196,176,224,.4)",fontFamily:"'DM Sans',sans-serif",
-              fontSize:11,cursor:"pointer",padding:0}}>
-            Beta Access
-          </button>
-        ) : (
-          <div style={{animation:"fadeUp .3s ease both"}}>
-            {gateError && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#F44336",marginBottom:8}}>{gateError}</p>}
-            <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-              <input type="password" value={gateCode} onChange={e=>{setGateCode(e.target.value);setGateError("");}}
-                onKeyDown={e=>{if(e.key==="Enter")checkCode();}}
-                placeholder="Enter access code"
-                style={{padding:"10px 14px",borderRadius:8,border:"1px solid rgba(196,176,224,.3)",background:"rgba(244,240,250,.08)",
-                  color:"#F4F0FA",fontFamily:"'DM Sans',sans-serif",fontSize:13,width:180,boxSizing:"border-box"}}/>
-              <button onClick={checkCode}
-                style={{padding:"10px 18px",borderRadius:8,border:"none",background:"#F5B800",color:"#2D1B5C",
-                  fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
-                Go
-              </button>
+        {/* Request Beta Access form */}
+        <div style={{background:"rgba(244,240,250,0.06)",borderRadius:16,padding:"24px 22px",border:"1px solid rgba(196,176,224,.15)",marginBottom:24,textAlign:"left",animation:"fadeUp .6s .3s ease both",backdropFilter:"blur(4px)"}}>
+          <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#F4F0FA",marginBottom:12,textAlign:"center"}}>Request Beta Access</h3>
+          {reqSent ? (
+            <div style={{textAlign:"center",padding:"12px 0"}}>
+              <CheckCircle size={28} color="#F5B800" style={{margin:"0 auto 10px",display:"block"}}/>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#F4F0FA",lineHeight:1.6,margin:0}}>
+                Your request has been received. You will hear from us shortly.
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            <>
+              <div style={{marginBottom:10}}>
+                <input type="text" value={reqName} onChange={e=>setReqName(e.target.value)} placeholder="Your name" style={inputStyle}/>
+              </div>
+              <div style={{marginBottom:14}}>
+                <input type="email" value={reqEmail} onChange={e=>setReqEmail(e.target.value)} placeholder="Your email address"
+                  onKeyDown={e=>{if(e.key==="Enter")submitRequest();}} style={inputStyle}/>
+              </div>
+              <button onClick={submitRequest} disabled={!reqName.trim()||!reqEmail.trim()}
+                style={{width:"100%",padding:"12px",borderRadius:10,border:"none",
+                  background:reqName.trim()&&reqEmail.trim()?"#F5B800":"rgba(196,176,224,.2)",
+                  color:reqName.trim()&&reqEmail.trim()?"#2D1B5C":"rgba(196,176,224,.5)",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:700,cursor:reqName.trim()&&reqEmail.trim()?"pointer":"default"}}>
+                Request Access
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Access code gate for approved users */}
+        <div style={{width:60,height:2,background:"linear-gradient(90deg,transparent,#F5B800,transparent)",margin:"0 auto 20px",borderRadius:2}}/>
+        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"rgba(196,176,224,.5)",marginBottom:10}}>Already have an access code?</p>
+        {gateError && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#F44336",marginBottom:8}}>{gateError}</p>}
+        <div style={{display:"flex",gap:8,justifyContent:"center"}}>
+          <input type="password" value={gateCode} onChange={e=>{setGateCode(e.target.value);setGateError("");}}
+            onKeyDown={e=>{if(e.key==="Enter")checkCode();}}
+            placeholder="Enter access code"
+            style={{...inputStyle,width:180,textAlign:"center"}}/>
+          <button onClick={checkCode}
+            style={{padding:"11px 20px",borderRadius:8,border:"none",background:"#F5B800",color:"#2D1B5C",
+              fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
+            Access App
+          </button>
+        </div>
       </div>
     </div>
   );
