@@ -862,7 +862,6 @@ function AppMain({ session, onSecurityLogout }) {
   const [toast, setToast] = useState("");
   const [exportMsg, setExportMsg] = useState("");
   const fileRef = useRef(null);
-  const hairOtherRef = useRef(null);
 
   const totalScore = Object.values(scores).reduce((a,v)=>a+(v||0),0);
   const maxScore = SYMPTOMS.length * 5;
@@ -902,8 +901,6 @@ function AppMain({ session, onSecurityLogout }) {
   const isCarryForward = freq => ["Daily","Several times a week","Weekly","Every 2 weeks","Monthly"].includes(freq);
 
   const saveHairLog = () => {
-    if(hairOtherRef.current) setHairOther(hairOtherRef.current.value||"");
-    const currentHairOther = hairOtherRef.current ? hairOtherRef.current.value||"" : hairOther;
     const heatVal = Array.isArray(heat) ? heat.join(", ") : heat;
     const productVal = Array.isArray(product) ? product.join(", ") : product;
     const scalpCareVal = Array.isArray(scalpCare) ? scalpCare.join(", ") : scalpCare;
@@ -920,7 +917,7 @@ function AppMain({ session, onSecurityLogout }) {
       locsMaint: Array.isArray(locsMaint) ? locsMaint.join(", ") : locsMaint, locsMaintFreq, locsMaintNote,
       moistRoutine: Array.isArray(moistRoutine) ? moistRoutine.join(", ") : moistRoutine, moistRoutineFreq, moistRoutineNote,
       routineChanged: {...routineChanged},
-      hairOther: currentHairOther,
+      hairOther,
     };
     setHairHistory(prev => [entry, ...prev]);
 
@@ -960,8 +957,7 @@ function AppMain({ session, onSecurityLogout }) {
 
   const saveLog = async () => {
     // Snapshot current hair state (including any active carry-forward styles)
-    const latestHairOther = hairOtherRef.current ? hairOtherRef.current.value||"" : hairOther;
-    const hairSnap = {tension,tensionNote,tensionFreq,chemical,chemicalNote,chemicalFreq,wig,wigNote,wigFreq,protectiveStyle,protectiveStyleNote,protectiveStyleFreq,heat,heatNote,heatFreq,product,productNote,productFreq,cleansing,cleansingNote,cleansingFreq,scalpCare,scalpCareNote,scalpCareFreq,locsMaint,locsMaintNote,locsMaintFreq,moistRoutine,moistRoutineNote,moistRoutineFreq,hairOther:latestHairOther};
+    const hairSnap = {tension,tensionNote,tensionFreq,chemical,chemicalNote,chemicalFreq,wig,wigNote,wigFreq,protectiveStyle,protectiveStyleNote,protectiveStyleFreq,heat,heatNote,heatFreq,product,productNote,productFreq,cleansing,cleansingNote,cleansingFreq,scalpCare,scalpCareNote,scalpCareFreq,locsMaint,locsMaintNote,locsMaintFreq,moistRoutine,moistRoutineNote,moistRoutineFreq,hairOther};
     const entry = {
       id:Date.now(), date:fmtShort(now), time:fmtTime(now), fullDate:fmtFull(now),
       scores:{...scores}, totalScore, avgScore:parseFloat(avgStr), riskLevel,
@@ -2100,7 +2096,7 @@ function AppMain({ session, onSecurityLogout }) {
             </CollapsibleHairSection>
             )}
 
-            {/* My Hair Notes — always visible, outside collapsible system */}
+            {/* My Hair Notes — always visible, plain div, no collapsible wrapper */}
             <div style={{...card,marginBottom:16}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
                 <div style={{width:38,height:38,borderRadius:10,background:"#7A8FA614",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -2108,50 +2104,11 @@ function AppMain({ session, onSecurityLogout }) {
                 </div>
                 <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>My Hair Notes</h3>
               </div>
-              <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" ref={hairOtherRef} defaultValue={hairOther}
-                onBlur={e=>setHairOther(e.target.value)}
-                onInput={e=>{hairOtherRef.current=e.target;}}
+              <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences"
+                value={hairOther} onChange={e=>setHairOther(e.target.value)}
                 style={ta}
                 placeholder="Anything else about your hair care routine you want to remember? A new product you tried, something that irritated your scalp, a style you want to avoid. Write it here."/>
             </div>
-
-            {/* Research Participation — hidden for now */}
-            {false && <CollapsibleHairSection sectionKey="researchSection" title="Research Participation" Icon={Heart} iconColor="#9B7FC0"
-              filled={!!researchOptIn} isOpen={!!hairSectionsOpen["researchSection"]} onToggle={toggleHairSection} card={card}
-              cardStyle={{border:"2px solid #9B7FC0",background:"#F4F0FA"}}>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",marginBottom:16,lineHeight:1.6}}>
-                Would you like to contribute your anonymized data to scarring alopecia research?
-              </p>
-              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-                {[["yes","Yes, I want to contribute to research"],["no","No, keep my data private only"]].map(([val,label])=>{
-                  const sel = researchOptIn===val;
-                  return (
-                    <button key={val} type="button" onClick={()=>setResearchOptIn(val)}
-                      style={{background:sel?"rgba(91,75,122,0.12)":"#fff",color:"#3D2B5C",
-                        border:"2px solid "+(sel?"#5B4B7A":"#DDD0F0"),borderRadius:10,
-                        padding:"12px 16px",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:sel?700:400,
-                        cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12,width:"100%"}}>
-                      <div style={{width:20,height:20,borderRadius:"50%",border:"2px solid "+(sel?"#5B4B7A":"#C4B0E0"),
-                        background:sel?"#5B4B7A":"transparent",flexShrink:0,
-                        display:"flex",alignItems:"center",justifyContent:"center"}}>
-                        {sel && <span style={{color:"#fff",fontSize:13,lineHeight:1}}>&#10003;</span>}
-                      </div>
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-              <button className="lift" onClick={async ()=>{
-                if(!researchOptIn) return;
-                try {
-                  await supabase.auth.updateUser({ data: { research_opt_in: researchOptIn } });
-                  setResearchLog(prev=>[{id:Date.now(),date:fmtShort(now),time:fmtTime(now),fullDate:fmtFull(now),choice:researchOptIn},...prev]);
-                  showToast(researchOptIn==="yes"?"Thank you for contributing to research.":"Your preference has been saved. Your data will remain private.");
-                } catch(err) { console.warn("Failed to save research preference:", err); }
-              }} style={{...gold,padding:"10px 22px",fontSize:13}} disabled={!researchOptIn}>
-                Save Research Preference
-              </button>
-            </CollapsibleHairSection>}
 
             {/* Save button — independent from symptoms */}
             <div style={{display:"flex",gap:11,flexWrap:"wrap",marginBottom:24}}>
