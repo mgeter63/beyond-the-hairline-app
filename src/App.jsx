@@ -648,7 +648,20 @@ function MFASetup({ onDone, onCancel }) {
 }
 
 // Coming Soon page for non-logged-in visitors
-function ComingSoon() {
+function ComingSoon({ onBetaAccess }) {
+  const [showGate, setShowGate] = useState(false);
+  const [gateCode, setGateCode] = useState("");
+  const [gateError, setGateError] = useState("");
+
+  const checkCode = () => {
+    if (gateCode === "BTH2026beta") {
+      onBetaAccess();
+    } else {
+      setGateError("Incorrect access code");
+      setGateCode("");
+    }
+  };
+
   return (
     <div style={{minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",
       backgroundImage:`url(${heroGroup})`,backgroundSize:"cover",backgroundPosition:"center"}}>
@@ -676,7 +689,31 @@ function ComingSoon() {
             mgeter@601sistas.com
           </a>
         </div>
-        <div style={{width:60,height:2,background:"linear-gradient(90deg,transparent,#F5B800,transparent)",margin:"0 auto",borderRadius:2}}/>
+        <div style={{width:60,height:2,background:"linear-gradient(90deg,transparent,#F5B800,transparent)",margin:"0 auto 24px",borderRadius:2}}/>
+
+        {!showGate ? (
+          <button onClick={()=>{setShowGate(true);setGateError("");}}
+            style={{background:"none",border:"none",color:"rgba(196,176,224,.4)",fontFamily:"'DM Sans',sans-serif",
+              fontSize:11,cursor:"pointer",padding:0}}>
+            Beta Access
+          </button>
+        ) : (
+          <div style={{animation:"fadeUp .3s ease both"}}>
+            {gateError && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#F44336",marginBottom:8}}>{gateError}</p>}
+            <div style={{display:"flex",gap:8,justifyContent:"center"}}>
+              <input type="password" value={gateCode} onChange={e=>{setGateCode(e.target.value);setGateError("");}}
+                onKeyDown={e=>{if(e.key==="Enter")checkCode();}}
+                placeholder="Enter access code"
+                style={{padding:"10px 14px",borderRadius:8,border:"1px solid rgba(196,176,224,.3)",background:"rgba(244,240,250,.08)",
+                  color:"#F4F0FA",fontFamily:"'DM Sans',sans-serif",fontSize:13,width:180,boxSizing:"border-box"}}/>
+              <button onClick={checkCode}
+                style={{padding:"10px 18px",borderRadius:8,border:"none",background:"#F5B800",color:"#2D1B5C",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                Go
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -688,6 +725,7 @@ export default function App() {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [securityLogout, setSecurityLogout] = useState(false);
   const [mfaPending, setMfaPending] = useState(false);
+  const [betaAccess, setBetaAccess] = useState(false);
 
   const isLoginRoute = window.location.pathname === "/login" || window.location.hash === "#login";
 
@@ -750,10 +788,10 @@ export default function App() {
   }
 
   if (!session) {
-    if (isLoginRoute) {
+    if (isLoginRoute || betaAccess) {
       return <AuthScreen securityLogout={securityLogout} />;
     }
-    return <ComingSoon />;
+    return <ComingSoon onBetaAccess={()=>setBetaAccess(true)} />;
   }
 
   if (mfaPending) {
