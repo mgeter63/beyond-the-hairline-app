@@ -346,7 +346,7 @@ function ResetPasswordForm({ onDone }) {
   );
 }
 
-function AuthScreen({ onAuth }) {
+function AuthScreen({ onAuth, securityLogout }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -417,6 +417,12 @@ function AuthScreen({ onAuth }) {
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginBottom:22,textAlign:"center"}}>
             {mode === "login" ? "Your data is here, and so are we." : mode === "signup" ? "Your data stays yours. We are here to help you document, track, and advocate for yourself." : "Enter your email and we'll send a reset link"}
           </p>
+
+          {securityLogout && mode === "login" && (
+            <div style={{background:"rgba(91,75,122,0.08)",border:"1px solid #9B7FC0",borderRadius:10,padding:"12px 14px",marginBottom:16,textAlign:"center"}}>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#5B4B7A",margin:0,fontWeight:600}}>You were logged out for your security. Your data is safe.</p>
+            </div>
+          )}
 
           {error && (
             <div style={{background:"#FFF0F0",border:"1px solid #F4434370",borderRadius:10,padding:"10px 14px",marginBottom:16}}>
@@ -511,6 +517,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [securityLogout, setSecurityLogout] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -521,6 +528,9 @@ export default function App() {
       setSession(s);
       if (event === "PASSWORD_RECOVERY") {
         setPasswordRecovery(true);
+      }
+      if (event === "SIGNED_IN") {
+        setSecurityLogout(false);
       }
     });
     return () => subscription.unsubscribe();
@@ -539,15 +549,70 @@ export default function App() {
   }
 
   if (!session) {
-    return <AuthScreen />;
+    return <AuthScreen securityLogout={securityLogout} />;
   }
 
-  return <AppMain session={session} />;
+  return <AppMain session={session} onSecurityLogout={()=>setSecurityLogout(true)} />;
 }
 
-function AppMain({ session }) {
+const CollapsibleHairSection = ({sectionKey,title,Icon:SIcon,iconColor,filled,children,cardStyle,isOpen,onToggle,card}) => {
+  return (
+    <div style={{...card,marginBottom:12,...(cardStyle||{})}}>
+      <div onClick={()=>onToggle(sectionKey)}
+        style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",userSelect:"none"}}>
+        <div style={{width:38,height:38,borderRadius:10,background:(iconColor||"#7B5EA7")+"14",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <SIcon size={19} color={iconColor||"#7B5EA7"}/>
+        </div>
+        <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0,flex:1}}>{title}</h3>
+        {filled && <CheckCircle size={16} color="#2E7D32" style={{flexShrink:0}}/>}
+        {isOpen?<ChevronUp size={17} color="#C4B0E0"/>:<ChevronDown size={17} color="#C4B0E0"/>}
+      </div>
+      {isOpen && <div style={{marginTop:13}}>{children}</div>}
+    </div>
+  );
+};
+
+function AppMain({ session, onSecurityLogout }) {
   const now = useTick();
   const [tab, setTab] = useState("home");
+
+  // Session timeout — 15 min inactivity logout, 10 min warning
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const lastActivityRef = useRef(Date.now());
+  const warningTimerRef = useRef(null);
+  const logoutTimerRef = useRef(null);
+
+  useEffect(() => {
+    const resetTimers = () => {
+      lastActivityRef.current = Date.now();
+      setShowTimeoutWarning(false);
+      clearTimeout(warningTimerRef.current);
+      clearTimeout(logoutTimerRef.current);
+      warningTimerRef.current = setTimeout(() => {
+        setShowTimeoutWarning(true);
+      }, 10 * 60 * 1000);
+      logoutTimerRef.current = setTimeout(() => {
+        onSecurityLogout();
+        supabase.auth.signOut();
+      }, 15 * 60 * 1000);
+    };
+
+    const onActivity = () => {
+      if (Date.now() - lastActivityRef.current > 1000) {
+        resetTimers();
+      }
+    };
+
+    const events = ["mousemove", "keydown", "mousedown", "touchstart"];
+    events.forEach(ev => document.addEventListener(ev, onActivity, { passive: true }));
+    resetTimers();
+
+    return () => {
+      events.forEach(ev => document.removeEventListener(ev, onActivity));
+      clearTimeout(warningTimerRef.current);
+      clearTimeout(logoutTimerRef.current);
+    };
+  }, [onSecurityLogout]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
     const created = new Date(session.user?.created_at || 0).getTime();
     const lastSign = new Date(session.user?.last_sign_in_at || 0).getTime();
@@ -752,12 +817,27 @@ function AppMain({ session }) {
     } catch(e) { /* ignore migration errors */ }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [treatmentLog, setTreatmentLog] = useState(() => {
+    try { const s = localStorage.getItem("bth_treatment_log"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [txName, setTxName] = useState("");
+  const [txStart, setTxStart] = useState("");
+  const [txDosage, setTxDosage] = useState("");
+  const [txDoctor, setTxDoctor] = useState("");
+  const [txNotes, setTxNotes] = useState("");
+  const [txRating, setTxRating] = useState("");
+  const [researchLog, setResearchLog] = useState(() => {
+    try { const s = localStorage.getItem("bth_research_log"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+
   // Persist everything to localStorage (backup)
   useEffect(() => { try { localStorage.setItem("bth_history", JSON.stringify(history)); } catch {} }, [history]);
   useEffect(() => { try { localStorage.setItem("bth_visits", JSON.stringify(savedVisits)); } catch {} }, [savedVisits]);
   useEffect(() => { try { localStorage.setItem("bth_hairHistory", JSON.stringify(hairHistory)); } catch {} }, [hairHistory]);
   useEffect(() => { try { localStorage.setItem("bth_activeStyles", JSON.stringify(activeStyles)); } catch {} }, [activeStyles]);
   useEffect(() => { try { localStorage.setItem("bth_photos", JSON.stringify(savedPhotos)); } catch {} }, [savedPhotos]);
+  useEffect(() => { try { localStorage.setItem("bth_treatment_log", JSON.stringify(treatmentLog)); } catch {} }, [treatmentLog]);
+  useEffect(() => { try { localStorage.setItem("bth_research_log", JSON.stringify(researchLog)); } catch {} }, [researchLog]);
 
   // On load, pre-fill hair form with any active carry-forward styles
   useEffect(() => {
@@ -769,12 +849,20 @@ function AppMain({ session }) {
     if (activeStyles.product) { setProduct(activeStyles.product.value); setProductFreq(activeStyles.product.freq); }
   }, []);
   const [histFilter, setHistFilter] = useState("all");
+  const [histFrom, setHistFrom] = useState("");
+  const [histTo, setHistTo] = useState("");
   const [expandedCond, setExpandedCond] = useState(null);
+  const [diagnosisStatus, setDiagnosisStatus] = useState("");
+  const [diagnosisCondition, setDiagnosisCondition] = useState("");
   const [expandedTreat, setExpandedTreat] = useState(null);
+  const [hairSectionsOpen, setHairSectionsOpen] = useState({});
+  const [appLang, setAppLang] = useState("en");
+  const [researchOptIn, setResearchOptIn] = useState(session.user?.user_metadata?.research_opt_in || "");
   const [refOpen, setRefOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [exportMsg, setExportMsg] = useState("");
   const fileRef = useRef(null);
+  const hairOtherRef = useRef(null);
 
   const totalScore = Object.values(scores).reduce((a,v)=>a+(v||0),0);
   const maxScore = SYMPTOMS.length * 5;
@@ -783,6 +871,8 @@ function AppMain({ session }) {
   const riskLevel = avg>=4?"severe":avg>=3?"moderate":avg>=1?"mild":"none";
 
   const showToast = msg => { setToast(msg); setTimeout(()=>setToast(""),4000); };
+
+  const toggleHairSection = key => setHairSectionsOpen(p=>({...p,[key]:!p[key]}));
 
   const ChangeIndicator = ({sectionKey}) => {
     const checked = routineChanged[sectionKey]?.checked || false;
@@ -800,7 +890,7 @@ function AppMain({ session }) {
         </button>
         {checked && (
           <div style={{marginTop:8,marginLeft:27}}>
-            <textarea value={text} onChange={e=>setRoutineChanged(p=>({...p,[sectionKey]:{...p[sectionKey],text:e.target.value}}))}
+            <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={text} onChange={e=>setRoutineChanged(p=>({...p,[sectionKey]:{...p[sectionKey],text:e.target.value}}))}
               style={{...ta,minHeight:50}} placeholder="Tell us what changed and when..."/>
           </div>
         )}
@@ -812,6 +902,8 @@ function AppMain({ session }) {
   const isCarryForward = freq => ["Daily","Several times a week","Weekly","Every 2 weeks","Monthly"].includes(freq);
 
   const saveHairLog = () => {
+    if(hairOtherRef.current) setHairOther(hairOtherRef.current.value||"");
+    const currentHairOther = hairOtherRef.current ? hairOtherRef.current.value||"" : hairOther;
     const heatVal = Array.isArray(heat) ? heat.join(", ") : heat;
     const productVal = Array.isArray(product) ? product.join(", ") : product;
     const scalpCareVal = Array.isArray(scalpCare) ? scalpCare.join(", ") : scalpCare;
@@ -828,7 +920,7 @@ function AppMain({ session }) {
       locsMaint: Array.isArray(locsMaint) ? locsMaint.join(", ") : locsMaint, locsMaintFreq, locsMaintNote,
       moistRoutine: Array.isArray(moistRoutine) ? moistRoutine.join(", ") : moistRoutine, moistRoutineFreq, moistRoutineNote,
       routineChanged: {...routineChanged},
-      hairOther,
+      hairOther: currentHairOther,
     };
     setHairHistory(prev => [entry, ...prev]);
 
@@ -868,11 +960,13 @@ function AppMain({ session }) {
 
   const saveLog = async () => {
     // Snapshot current hair state (including any active carry-forward styles)
-    const hairSnap = {tension,tensionNote,tensionFreq,chemical,chemicalNote,chemicalFreq,wig,wigNote,wigFreq,protectiveStyle,protectiveStyleNote,protectiveStyleFreq,heat,heatNote,heatFreq,product,productNote,productFreq,cleansing,cleansingNote,cleansingFreq,scalpCare,scalpCareNote,scalpCareFreq,locsMaint,locsMaintNote,locsMaintFreq,moistRoutine,moistRoutineNote,moistRoutineFreq,hairOther};
+    const latestHairOther = hairOtherRef.current ? hairOtherRef.current.value||"" : hairOther;
+    const hairSnap = {tension,tensionNote,tensionFreq,chemical,chemicalNote,chemicalFreq,wig,wigNote,wigFreq,protectiveStyle,protectiveStyleNote,protectiveStyleFreq,heat,heatNote,heatFreq,product,productNote,productFreq,cleansing,cleansingNote,cleansingFreq,scalpCare,scalpCareNote,scalpCareFreq,locsMaint,locsMaintNote,locsMaintFreq,moistRoutine,moistRoutineNote,moistRoutineFreq,hairOther:latestHairOther};
     const entry = {
       id:Date.now(), date:fmtShort(now), time:fmtTime(now), fullDate:fmtFull(now),
       scores:{...scores}, totalScore, avgScore:parseFloat(avgStr), riskLevel,
       symNotes, overallNote, scalpLocation,
+      researchOptIn: researchOptIn || "",
       hair: hairSnap,
       photos:photos.map(p=>({name:p.name,note:p.note,date:p.date,time:p.time})),
     };
@@ -1020,7 +1114,12 @@ function AppMain({ session }) {
     setTimeout(()=>setExportMsg(""),5000);
   };
 
-  const filtered = histFilter==="all" ? history : history.filter(e=>e.riskLevel===histFilter);
+  const filtered = history.filter(e => {
+    if (histFilter !== "all" && e.riskLevel !== histFilter) return false;
+    if (histFrom) { const from = new Date(histFrom + "T00:00:00"); if (e.id < from.getTime()) return false; }
+    if (histTo) { const to = new Date(histTo + "T23:59:59"); if (e.id > to.getTime()) return false; }
+    return true;
+  });
 
   const card = {background:"#fff",borderRadius:18,padding:"24px 26px",border:"1px solid #DDD0F0",boxShadow:"0 2px 14px rgba(42,26,10,0.05)"};
   const lbl  = {fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8878A8",marginBottom:7,display:"block"};
@@ -1062,19 +1161,34 @@ function AppMain({ session }) {
           .grid-sym{grid-template-columns:1fr 1fr!important}
           .hero-grid{grid-template-columns:1fr!important}
           .hero-logo{display:none!important}
-          .stat-grid{grid-template-columns:1fr 1fr!important}
-          .feat-grid{grid-template-columns:1fr 1fr!important}
+          .stats-4{grid-template-columns:1fr 1fr!important}
+          .stat-grid{grid-template-columns:1fr!important}
+          .feat-grid{grid-template-columns:1fr!important}
+          .home-cta{flex-direction:column!important}
+          .home-cta-btn{width:100%!important;text-align:center!important}
           .cond-grid{grid-template-columns:1fr!important}
           .treat-grid{grid-template-columns:1fr!important}
           .visit-grid{grid-template-columns:1fr!important}
           .score-grid{grid-template-columns:auto 1fr!important;gap:12px!important}
           .score-actions{flex-direction:column!important}
           h2{font-size:24px!important}
+          .header-logo-img{width:60px!important;height:60px!important}
           .header-brand-text{font-size:13px!important}
           .header-brand-sub{font-size:8px!important}
           .footer-logo-img{height:60px!important;width:auto!important}
           .hero-card{padding:28px 18px!important}
-          .fi{overflow-x:hidden}
+          .main-content{overflow-x:hidden!important;box-sizing:border-box!important;max-width:100vw!important}
+          .main-content *{max-width:100%!important;box-sizing:border-box!important}
+          .main-content p,.main-content h1,.main-content h2,.main-content h3,.main-content h4,.main-content span,.main-content div,.main-content blockquote,.main-content label{word-wrap:break-word!important;overflow-wrap:break-word!important}
+          .main-content textarea,.main-content input,.main-content select{max-width:100%!important;box-sizing:border-box!important}
+          .fi{overflow-x:hidden;padding-left:16px!important;padding-right:16px!important;box-sizing:border-box!important;max-width:100%!important}
+          .nav-scroll{flex-wrap:nowrap!important;overflow-x:auto!important;justify-content:flex-start!important;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+          .nav-scroll::-webkit-scrollbar{display:none}
+          .nav-scroll button{font-size:11px!important;padding:6px 10px!important;flex-shrink:0!important}
+          .nav-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:36px;background:linear-gradient(to right,transparent,rgba(51,30,74,0.9));pointer-events:none;z-index:1;border-radius:0 0 4px 0}
+          .header-controls{gap:6px!important;margin-top:4px!important;justify-content:center!important}
+          .header-controls select{font-size:10px!important;padding:5px 8px!important;max-width:120px!important}
+          .header-controls button{font-size:10px!important;padding:5px 8px!important}
         }
         @media(max-width:420px){
           .grid-sym{grid-template-columns:1fr!important}
@@ -1083,13 +1197,14 @@ function AppMain({ session }) {
         }
       `}</style>
 
-      <header style={{background:"#5B4B7A",position:"sticky",top:0,zIndex:300,borderBottom:"1px solid rgba(201,168,130,.14)"}}>
-        <div style={{maxWidth:1200,margin:"0 auto",padding:"0 20px"}}>
+      <header style={{position:"sticky",top:0,zIndex:300,borderBottom:"1px solid rgba(201,168,130,.14)",
+        backgroundImage:`url(${heroGroup})`,backgroundSize:"cover",backgroundPosition:"center top"}}>
+        <div style={{position:"absolute",inset:0,background:"rgba(51,30,74,0.85)",pointerEvents:"none"}}/>
+        <div style={{maxWidth:1200,margin:"0 auto",padding:"0 20px",position:"relative"}}>
           {/* Brand row — centered */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:12,paddingBottom:4,gap:2,cursor:"pointer"}} onClick={()=>setTab("home")}>
-            <img className="header-logo-img" src={LOGO} alt="Beyond the Hairline" width="160" height="160" style={{width:160,height:160,objectFit:"contain",flexShrink:0}} />
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:14,paddingBottom:6,gap:2,cursor:"pointer"}} onClick={()=>setTab("home")}>
             <div style={{textAlign:"center"}}>
-              <div className="header-brand-text" style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#F4F0FA",lineHeight:1.2}}>Beyond the Hairline</div>
+              <div className="header-brand-text" style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#F4F0FA",lineHeight:1.2}}>Beyond the Hairline™</div>
               <div className="header-brand-sub" style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#E8DCF8",letterSpacing:"0.14em",textTransform:"uppercase",marginTop:3,fontWeight:500}}>Scarring Alopecia Tracker</div>
             </div>
             <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(201,168,130,.45)",marginTop:2}}>
@@ -1097,8 +1212,8 @@ function AppMain({ session }) {
             </div>
           </div>
           {/* Nav row — centered */}
-          <div style={{paddingBottom:10,paddingTop:6}}>
-            <nav className="nav-scroll" style={{display:"flex",gap:4,justifyContent:"center",flexWrap:"wrap"}}>
+          <div className="nav-wrap" style={{paddingBottom:10,paddingTop:6,position:"relative"}}>
+            <nav className="nav-scroll" style={{display:"flex",gap:4,justifyContent:"center"}}>
               {TABS.map(t=>(
                 <button key={t.id} className="nb" onClick={e=>{e.stopPropagation();setTab(t.id)}}
                   style={{background:tab===t.id?"rgba(244,240,250,.15)":"transparent",color:tab===t.id?"#F4F0FA":"#C4B0E0",
@@ -1107,15 +1222,49 @@ function AppMain({ session }) {
                   {t.label}
                 </button>
               ))}
+            </nav>
+            <div className="header-controls" style={{display:"flex",justifyContent:"center",gap:8,marginTop:6}}>
+              <select value={appLang} onChange={e=>setAppLang(e.target.value)}
+                style={{background:"rgba(244,240,250,.1)",color:"#C4B0E0",border:"1px solid rgba(196,176,224,.3)",borderRadius:8,
+                  padding:"8px 14px",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600,cursor:"pointer",appearance:"auto"}}>
+                {[["en","English"],["es","Español"],["fr","Français"],["pt","Português"],["ar","Arabic"],["ht","Kreyòl Ayisyen"]].map(([v,l])=>(
+                  <option key={v} value={v} style={{background:"#5B4B7A",color:"#F4F0FA"}}>{l}</option>
+                ))}
+              </select>
               <button onClick={()=>supabase.auth.signOut()}
                 style={{background:"rgba(244,240,250,.1)",color:"#C4B0E0",border:"1px solid rgba(196,176,224,.3)",borderRadius:8,
                   padding:"8px 14px",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600,whiteSpace:"nowrap",cursor:"pointer",transition:"all .2s"}}>
                 Sign Out
               </button>
-            </nav>
+            </div>
           </div>
         </div>
       </header>
+
+      {showTimeoutWarning && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.6)",zIndex:1100,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:"#fff",borderRadius:18,padding:"36px 32px",maxWidth:420,width:"100%",textAlign:"center",boxShadow:"0 16px 48px rgba(42,26,10,.2)",border:"2px solid #9B7FC0"}}>
+            <div style={{width:48,height:48,borderRadius:"50%",background:"rgba(155,127,192,.12)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+              <Info size={24} color="#9B7FC0"/>
+            </div>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#5B4B7A",marginBottom:10}}>Are you still there?</h3>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",lineHeight:1.65,marginBottom:22}}>
+              You have been inactive for 10 minutes. For your security, you will be logged out in 5 minutes.
+            </p>
+            <button onClick={()=>{
+              lastActivityRef.current = Date.now();
+              setShowTimeoutWarning(false);
+              clearTimeout(warningTimerRef.current);
+              clearTimeout(logoutTimerRef.current);
+              warningTimerRef.current = setTimeout(()=>setShowTimeoutWarning(true), 10*60*1000);
+              logoutTimerRef.current = setTimeout(()=>{ onSecurityLogout(); supabase.auth.signOut(); }, 15*60*1000);
+            }} className="lift" style={{background:"#F5B800",color:"#2D1B5C",border:"none",borderRadius:10,padding:"12px 28px",
+              fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:800,cursor:"pointer"}}>
+              Stay Logged In
+            </button>
+          </div>
+        </div>
+      )}
 
       {showWelcomeModal && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -1143,7 +1292,7 @@ function AppMain({ session }) {
         </div>
       )}
 
-      <main style={{maxWidth:1200,margin:"0 auto",padding:"0 16px 80px",overflowX:"hidden",boxSizing:"border-box",width:"100%"}}>
+      <main className="main-content" style={{maxWidth:1200,margin:"0 auto",padding:"0 16px 80px",overflowX:"hidden",boxSizing:"border-box",width:"100%"}}>
 
         {tab==="home" && (
           <div className="fi" style={{paddingTop:32}}>
@@ -1176,6 +1325,12 @@ function AppMain({ session }) {
                 </div>
               );
             })()}
+            {researchOptIn==="yes" && (
+              <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(46,125,50,.08)",border:"1px solid rgba(46,125,50,.25)",borderRadius:8,padding:"8px 14px",marginBottom:14}}>
+                <Heart size={13} color="#2E7D32"/>
+                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,color:"#2E7D32"}}>Research Contributor</span>
+              </div>
+            )}
             <div className="hero-card" style={{background:"#5B4B7A",borderRadius:22,padding:"48px 44px",marginBottom:26,position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",bottom:-60,right:-40,width:300,height:300,borderRadius:"50%",
                 background:"radial-gradient(circle,rgba(201,168,130,.06),transparent 65%)",pointerEvents:"none"}} />
@@ -1196,9 +1351,9 @@ function AppMain({ session }) {
                       SAF (2024): CCCA is the most common scarring alopecia and diagnoses are rising at an alarming rate among African American women.
                     </p>
                   </div>
-                  <div style={{display:"flex",gap:11,flexWrap:"wrap"}}>
-                    <button className="lift" onClick={()=>setTab("log")} style={{...gold,padding:"13px 26px",fontSize:14}}>Start Today's Log</button>
-                    <button className="lift" onClick={()=>setTab("visit")} style={{background:"transparent",color:"#C4B0E0",
+                  <div className="home-cta" style={{display:"flex",gap:11,flexWrap:"wrap"}}>
+                    <button className="lift home-cta-btn" onClick={()=>setTab("log")} style={{...gold,padding:"13px 26px",fontSize:14}}>Start Today's Log</button>
+                    <button className="lift home-cta-btn" onClick={()=>setTab("visit")} style={{background:"transparent",color:"#C4B0E0",
                       border:"2px solid rgba(201,168,130,.3)",borderRadius:10,padding:"13px 26px",
                       fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
                       Prepare for Your Visit
@@ -1212,7 +1367,7 @@ function AppMain({ session }) {
             </div>
 
             {history.length>0 && (
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:22}}>
+              <div className="stats-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:22}}>
                 {[
                   {v:history.length,l:"Log Entries"},
                   {v:history[0].avgScore+"/5",l:"Latest Avg Score"},
@@ -1325,17 +1480,17 @@ function AppMain({ session }) {
             <div style={{...card,marginBottom:20}}>
               <div style={{marginBottom:14}}>
                 <label style={lbl}>Where on your scalp or hairline?</label>
-                <textarea value={scalpLocation} onChange={e=>setScalpLocation(e.target.value)} style={ta}
+                <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={scalpLocation} onChange={e=>setScalpLocation(e.target.value)} style={ta}
                   placeholder="Crown, temples, nape, edges, left side, right side, all over..." />
               </div>
               <div style={{marginBottom:14}}>
                 <label style={lbl}>Anything else you want to remember about today?</label>
-                <textarea value={symNotes} onChange={e=>setSymNotes(e.target.value)} style={ta}
+                <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={symNotes} onChange={e=>setSymNotes(e.target.value)} style={ta}
                   placeholder="What made it better or worse, new products tried, stress levels, anything you noticed..." />
               </div>
               <div>
                 <label style={lbl}>Overall - How Are You Feeling Today?</label>
-                <textarea value={overallNote} onChange={e=>setOverallNote(e.target.value)} style={ta}
+                <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={overallNote} onChange={e=>setOverallNote(e.target.value)} style={ta}
                   placeholder="Physical and emotional impact today..." />
               </div>
             </div>
@@ -1508,13 +1663,10 @@ function AppMain({ session }) {
                 {lbl:"Wigs & Extensions",Icon:Users,c:"#5B7ACC",opts:wigOpts,v:wig,sv:setWig,fv:wigFreq,sfv:setWigFreq,n:wigNote,sn:setWigNote,ph:"e.g. Lace front with adhesive - tension at hairline...",priority:isBAAA?0:1,adaptive:"wigs",hasMore:extraWigs.length>0&&!showAll,multi:true},
               ];
               return sections.sort((a,b)=>a.priority-b.priority).map((sec,i)=>(
-              <div key={i} style={{...card,marginBottom:12,...(sec.priority===0&&ethnicSaved?{borderLeft:"4px solid "+sec.c,background:"rgba(123,94,167,.03)"}:{})}}>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                  <div style={{width:38,height:38,borderRadius:10,background:sec.c+"14",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <sec.Icon size={19} color={sec.c}/>
-                  </div>
-                  <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>{sec.lbl}</h3>
-                </div>
+              <CollapsibleHairSection key={i} sectionKey={sec.adaptive||sec.lbl} title={sec.lbl} Icon={sec.Icon} iconColor={sec.c}
+                filled={sec.multi ? sec.v.length>0 : !!sec.v}
+                isOpen={!!hairSectionsOpen[sec.adaptive||sec.lbl]} onToggle={toggleHairSection} card={card}
+                cardStyle={sec.priority===0&&ethnicSaved?{borderLeft:"4px solid "+sec.c,background:"rgba(123,94,167,.03)"}:{}}>
                 <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                   <div>
                     <label style={lbl}>{sec.multi ? "Select all that apply (hold Ctrl to pick multiple)" : "Select Option"}</label>
@@ -1547,7 +1699,7 @@ function AppMain({ session }) {
                   </div>
                   <div>
                     <label style={lbl}>Notes</label>
-                    <textarea value={sec.n} onChange={e=>sec.sn(e.target.value)} style={{...ta,minHeight:50}} placeholder={sec.ph}/>
+                    <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={sec.n} onChange={e=>sec.sn(e.target.value)} style={{...ta,minHeight:50}} placeholder={sec.ph}/>
                   </div>
                 </div>
                 {sec.hasMore && (
@@ -1563,7 +1715,7 @@ function AppMain({ session }) {
                   </div>
                 )}
                 <ChangeIndicator sectionKey={sec.adaptive||sec.lbl}/>
-              </div>
+              </CollapsibleHairSection>
             ));})()}
 
             {/* Tension level question */}
@@ -1610,23 +1762,34 @@ function AppMain({ session }) {
 
             {/* Protective Style Care — Black or African American only */}
             {ethnicIdentity.includes("Black or African American") && (
-            <div style={{...card,marginBottom:12,borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#7B5EA714",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Heart size={19} color="#7B5EA7"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>Protective Style Care</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="protectiveStyleCare" title="Protective Style Care" Icon={Heart} iconColor="#7B5EA7"
+              filled={protectiveStyle.length>0} isOpen={!!hairSectionsOpen["protectiveStyleCare"]} onToggle={toggleHairSection} card={card}
+              cardStyle={{borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}}>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginBottom:12,lineHeight:1.5}}>How do you care for your hair and scalp while in a protective style?</p>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
-                  <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
-                  <select multiple value={protectiveStyle} onChange={e=>setProtectiveStyle(Array.from(e.target.selectedOptions,o=>o.value))}
-                    style={{...sel,height:160,padding:"4px"}}>
-                    {["Oil scalp between braids or twists","Use a braid spray or refresher","Wrap hair at night with satin or silk","Sleep on a satin pillowcase","Wash scalp while in protective style","Do not wash while in protective style","Take down style every 4 to 6 weeks","Leave style in longer than 8 weeks","Moisturize edges while in style","I do not do anything specific while in a protective style","Other"].map(o=>
-                      <option key={o} value={o}>{o}</option>
-                    )}
-                  </select>
+                  <label style={lbl}>Select all that apply</label>
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {["Oil scalp between braids or twists","Use a braid spray or refresher","Wrap hair at night with satin or silk","Sleep on a satin pillowcase","Wash scalp while in protective style","Do not wash while in protective style","Take down style every 4 to 6 weeks","Leave style in longer than 8 weeks","Moisturize edges while in style","I do not do anything specific while in a protective style","Other"].map(opt=>{
+                      const sel2 = protectiveStyle.includes(opt);
+                      return (
+                        <button key={opt} type="button" onClick={()=>{
+                          setProtectiveStyle(prev=>sel2?prev.filter(v=>v!==opt):[...prev,opt]);
+                        }}
+                          style={{background:sel2?"rgba(91,75,122,0.08)":"transparent",color:"#3D2B5C",
+                            border:"1px solid "+(sel2?"#5B4B7A":"#DDD0F0"),borderRadius:8,
+                            padding:"9px 12px",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:sel2?600:400,
+                            cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:9,width:"100%"}}>
+                          <div style={{width:18,height:18,borderRadius:4,border:"2px solid "+(sel2?"#5B4B7A":"#C4B0E0"),
+                            background:sel2?"#5B4B7A":"transparent",flexShrink:0,
+                            display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            {sel2 && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>&#10003;</span>}
+                          </div>
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div>
                   <label style={lbl}>Frequency</label>
@@ -1644,12 +1807,12 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={protectiveStyleNote} onChange={e=>setProtectiveStyleNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. I oil my scalp every other day while in braids..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={protectiveStyleNote} onChange={e=>setProtectiveStyleNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. I oil my scalp every other day while in braids..."/>
                 </div>
               </div>
               {protectiveStyle.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7B5EA7",marginTop:8,marginBottom:0}}>Selected: {protectiveStyle.join(", ")}</p>}
               <ChangeIndicator sectionKey="protectiveStyle"/>
-            </div>
+            </CollapsibleHairSection>
             )}
 
             {/* Heat Styling — adaptive multi-select */}
@@ -1665,13 +1828,9 @@ function AppMain({ session }) {
               const hasMore = extraHeat.length>0 && !showAll;
               const isBAAA = ethnicIdentity.includes("Black or African American");
               return (
-            <div style={{...card,marginBottom:12,...(isBAAA&&ethnicSaved?{borderLeft:"4px solid #9B7FC0",background:"rgba(123,94,167,.03)"}:{})}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#9B7FC014",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Flame size={19} color="#9B7FC0"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>Heat Styling</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="heatStyling" title="Heat Styling" Icon={Flame} iconColor="#9B7FC0"
+              filled={heat.length>0} isOpen={!!hairSectionsOpen["heatStyling"]} onToggle={toggleHairSection} card={card}
+              cardStyle={isBAAA&&ethnicSaved?{borderLeft:"4px solid #9B7FC0",background:"rgba(123,94,167,.03)"}:{}}>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
                   <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
@@ -1696,7 +1855,7 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={heatNote} onChange={e=>setHeatNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Flat iron medium heat - more tenderness after..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={heatNote} onChange={e=>setHeatNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Flat iron medium heat - more tenderness after..."/>
                 </div>
               </div>
               {heat.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9B7FC0",marginTop:8,marginBottom:0}}>Selected: {heat.join(", ")}</p>}
@@ -1709,7 +1868,7 @@ function AppMain({ session }) {
                 </div>
               )}
               <ChangeIndicator sectionKey="heat"/>
-            </div>
+            </CollapsibleHairSection>
               );
             })()}
 
@@ -1726,13 +1885,9 @@ function AppMain({ session }) {
               const hasMore = extraProducts.length>0 && !showAll;
               const isBAAA = ethnicIdentity.includes("Black or African American");
               return (
-            <div style={{...card,marginBottom:12,...(isBAAA&&ethnicSaved?{borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}:{})}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#7B5EA714",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Leaf size={19} color="#7B5EA7"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>Products Used on Scalp</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="productsSCalp" title="Products Used on Scalp" Icon={Leaf} iconColor="#7B5EA7"
+              filled={product.length>0} isOpen={!!hairSectionsOpen["productsSCalp"]} onToggle={toggleHairSection} card={card}
+              cardStyle={isBAAA&&ethnicSaved?{borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}:{}}>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
                   <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
@@ -1757,7 +1912,7 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={productNote} onChange={e=>setProductNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Medicated shampoo and scalp serum..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={productNote} onChange={e=>setProductNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Medicated shampoo and scalp serum..."/>
                 </div>
               </div>
               {product.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7B5EA7",marginTop:8,marginBottom:0}}>Selected: {product.join(", ")}</p>}
@@ -1770,7 +1925,7 @@ function AppMain({ session }) {
                 </div>
               )}
               <ChangeIndicator sectionKey="products"/>
-            </div>
+            </CollapsibleHairSection>
               );
             })()}
 
@@ -1787,13 +1942,9 @@ function AppMain({ session }) {
               const hasMore = extraCleansing.length>0 && !showAll;
               const isBAAA = ethnicIdentity.includes("Black or African American");
               return (
-            <div style={{...card,marginBottom:12,...(isBAAA&&ethnicSaved?{borderLeft:"4px solid #5B7ACC",background:"rgba(123,94,167,.03)"}:{})}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#5B7ACC14",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Droplets size={19} color="#5B7ACC"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>Cleansing Routine</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="cleansingRoutine" title="Cleansing Routine" Icon={Droplets} iconColor="#5B7ACC"
+              filled={cleansing.length>0} isOpen={!!hairSectionsOpen["cleansingRoutine"]} onToggle={toggleHairSection} card={card}
+              cardStyle={isBAAA&&ethnicSaved?{borderLeft:"4px solid #5B7ACC",background:"rgba(123,94,167,.03)"}:{}}>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
                   <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
@@ -1818,7 +1969,7 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={cleansingNote} onChange={e=>setCleansingNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Co-wash mid-week, sulfate-free shampoo on wash day..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={cleansingNote} onChange={e=>setCleansingNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Co-wash mid-week, sulfate-free shampoo on wash day..."/>
                 </div>
               </div>
               {cleansing.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#5B7ACC",marginTop:8,marginBottom:0}}>Selected: {cleansing.join(", ")}</p>}
@@ -1831,18 +1982,13 @@ function AppMain({ session }) {
                 </div>
               )}
               <ChangeIndicator sectionKey="cleansing"/>
-            </div>
+            </CollapsibleHairSection>
               );
             })()}
 
             {/* My Scalp Care */}
-            <div style={{...card,marginBottom:12}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#7A8FA614",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Heart size={19} color="#7A8FA6"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>My Scalp Care</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="scalpCareSection" title="My Scalp Care" Icon={Heart} iconColor="#7A8FA6"
+              filled={scalpCare.length>0} isOpen={!!hairSectionsOpen["scalpCareSection"]} onToggle={toggleHairSection} card={card}>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
                   <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
@@ -1869,22 +2015,18 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={scalpCareNote} onChange={e=>setScalpCareNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Scalp massage with jojoba oil before wash day..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={scalpCareNote} onChange={e=>setScalpCareNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Scalp massage with jojoba oil before wash day..."/>
                 </div>
               </div>
               {scalpCare.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A8FA6",marginTop:8,marginBottom:0}}>Selected: {scalpCare.join(", ")}</p>}
               <ChangeIndicator sectionKey="scalpCare"/>
-            </div>
+            </CollapsibleHairSection>
 
             {/* Locs Maintenance — conditional */}
             {ethnicIdentity.includes("Black or African American") && (tension.includes("Locs") || tension.includes("Sisterlocks")) && (
-            <div style={{...card,marginBottom:12,borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#7B5EA714",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Layers size={19} color="#7B5EA7"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>Locs Maintenance</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="locsMaintSection" title="Locs Maintenance" Icon={Layers} iconColor="#7B5EA7"
+              filled={locsMaint.length>0} isOpen={!!hairSectionsOpen["locsMaintSection"]} onToggle={toggleHairSection} card={card}
+              cardStyle={{borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}}>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
                   <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
@@ -1911,23 +2053,19 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={locsMaintNote} onChange={e=>setLocsMaintNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Retwist every 4 weeks - tightness at temples..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={locsMaintNote} onChange={e=>setLocsMaintNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. Retwist every 4 weeks - tightness at temples..."/>
                 </div>
               </div>
               {locsMaint.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7B5EA7",marginTop:8,marginBottom:0}}>Selected: {locsMaint.join(", ")}</p>}
               <ChangeIndicator sectionKey="locsMaint"/>
-            </div>
+            </CollapsibleHairSection>
             )}
 
             {/* Moisturizing Routine — conditional */}
             {(ethnicIdentity.includes("Black or African American") || ethnicIdentity.includes("Hispanic or Latina")) && (
-            <div style={{...card,marginBottom:12,borderLeft:"4px solid #9B7FC0",background:"rgba(123,94,167,.03)"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"#9B7FC014",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <Droplets size={19} color="#9B7FC0"/>
-                </div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>Moisturizing Routine</h3>
-              </div>
+            <CollapsibleHairSection sectionKey="moistRoutineSection" title="Moisturizing Routine" Icon={Droplets} iconColor="#9B7FC0"
+              filled={moistRoutine.length>0} isOpen={!!hairSectionsOpen["moistRoutineSection"]} onToggle={toggleHairSection} card={card}
+              cardStyle={{borderLeft:"4px solid #9B7FC0",background:"rgba(123,94,167,.03)"}}>
               <div className="grid-3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:13}}>
                 <div>
                   <label style={lbl}>Select all that apply (hold Ctrl to pick multiple)</label>
@@ -1954,19 +2092,66 @@ function AppMain({ session }) {
                 </div>
                 <div>
                   <label style={lbl}>Notes</label>
-                  <textarea value={moistRoutineNote} onChange={e=>setMoistRoutineNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. LOC method on wash day - scalp feels less dry..."/>
+                  <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={moistRoutineNote} onChange={e=>setMoistRoutineNote(e.target.value)} style={{...ta,minHeight:50}} placeholder="e.g. LOC method on wash day - scalp feels less dry..."/>
                 </div>
               </div>
               {moistRoutine.length>0 && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9B7FC0",marginTop:8,marginBottom:0}}>Selected: {moistRoutine.join(", ")}</p>}
               <ChangeIndicator sectionKey="moistRoutine"/>
-            </div>
+            </CollapsibleHairSection>
             )}
 
+            {/* My Hair Notes — always visible, outside collapsible system */}
             <div style={{...card,marginBottom:16}}>
-              <h3 style={h3}>My Hair Notes</h3>
-              <textarea value={hairOther} onChange={e=>setHairOther(e.target.value)} style={ta}
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
+                <div style={{width:38,height:38,borderRadius:10,background:"#7A8FA614",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <FileText size={19} color="#7A8FA6"/>
+                </div>
+                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",margin:0}}>My Hair Notes</h3>
+              </div>
+              <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" ref={hairOtherRef} defaultValue={hairOther}
+                onBlur={e=>setHairOther(e.target.value)}
+                onInput={e=>{hairOtherRef.current=e.target;}}
+                style={ta}
                 placeholder="Anything else about your hair care routine you want to remember? A new product you tried, something that irritated your scalp, a style you want to avoid. Write it here."/>
             </div>
+
+            {/* Research Participation — hidden for now */}
+            {false && <CollapsibleHairSection sectionKey="researchSection" title="Research Participation" Icon={Heart} iconColor="#9B7FC0"
+              filled={!!researchOptIn} isOpen={!!hairSectionsOpen["researchSection"]} onToggle={toggleHairSection} card={card}
+              cardStyle={{border:"2px solid #9B7FC0",background:"#F4F0FA"}}>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",marginBottom:16,lineHeight:1.6}}>
+                Would you like to contribute your anonymized data to scarring alopecia research?
+              </p>
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
+                {[["yes","Yes, I want to contribute to research"],["no","No, keep my data private only"]].map(([val,label])=>{
+                  const sel = researchOptIn===val;
+                  return (
+                    <button key={val} type="button" onClick={()=>setResearchOptIn(val)}
+                      style={{background:sel?"rgba(91,75,122,0.12)":"#fff",color:"#3D2B5C",
+                        border:"2px solid "+(sel?"#5B4B7A":"#DDD0F0"),borderRadius:10,
+                        padding:"12px 16px",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:sel?700:400,
+                        cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12,width:"100%"}}>
+                      <div style={{width:20,height:20,borderRadius:"50%",border:"2px solid "+(sel?"#5B4B7A":"#C4B0E0"),
+                        background:sel?"#5B4B7A":"transparent",flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        {sel && <span style={{color:"#fff",fontSize:13,lineHeight:1}}>&#10003;</span>}
+                      </div>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="lift" onClick={async ()=>{
+                if(!researchOptIn) return;
+                try {
+                  await supabase.auth.updateUser({ data: { research_opt_in: researchOptIn } });
+                  setResearchLog(prev=>[{id:Date.now(),date:fmtShort(now),time:fmtTime(now),fullDate:fmtFull(now),choice:researchOptIn},...prev]);
+                  showToast(researchOptIn==="yes"?"Thank you for contributing to research.":"Your preference has been saved. Your data will remain private.");
+                } catch(err) { console.warn("Failed to save research preference:", err); }
+              }} style={{...gold,padding:"10px 22px",fontSize:13}} disabled={!researchOptIn}>
+                Save Research Preference
+              </button>
+            </CollapsibleHairSection>}
 
             {/* Save button — independent from symptoms */}
             <div style={{display:"flex",gap:11,flexWrap:"wrap",marginBottom:24}}>
@@ -2128,7 +2313,7 @@ function AppMain({ session }) {
                         </div>
                         <div>
                           <label style={lbl}>Is there anything specific you want your doctor to see in this photo?</label>
-                          <textarea value={p.doctorNote||""} onChange={e=>setPhotos(prev=>prev.map(x=>x.id===p.id?{...x,doctorNote:e.target.value}:x))}
+                          <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={p.doctorNote||""} onChange={e=>setPhotos(prev=>prev.map(x=>x.id===p.id?{...x,doctorNote:e.target.value}:x))}
                             style={{...ta,minHeight:60}} placeholder="Describe what you want your doctor to notice..."/>
                         </div>
                       </div>
@@ -2209,7 +2394,7 @@ function AppMain({ session }) {
             {VS.map(vs=>(
               <div key={vs.id} style={{...card,marginBottom:13,borderLeft:"4px solid "+vs.color}}>
                 <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:vs.color,marginBottom:9}}>{vs.label}</h3>
-                <textarea value={visitNotes[vs.id]} onChange={e=>setVisitNotes(p=>({...p,[vs.id]:e.target.value}))} style={{...ta,minHeight:105}} placeholder={vs.ph}/>
+                <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={visitNotes[vs.id]} onChange={e=>setVisitNotes(p=>({...p,[vs.id]:e.target.value}))} style={{...ta,minHeight:105}} placeholder={vs.ph}/>
               </div>
             ))}
             <div style={{...card,marginBottom:20,background:"#5B4B7A",border:"none"}}>
@@ -2278,6 +2463,53 @@ function AppMain({ session }) {
                 If you have not received a formal diagnosis yet, you belong here too. Many women using this app are still in the process of finding answers.
               </p>
             </div>
+            {/* My Diagnosis */}
+            {diagnosisStatus==="Yes" && diagnosisCondition && (
+              <div style={{background:"linear-gradient(135deg,#5B4B7A 0%,#7B5EA7 100%)",borderRadius:14,padding:"18px 22px",marginBottom:18,display:"flex",alignItems:"center",gap:14}}>
+                <BookOpen size={22} color="#F4F0FA"/>
+                <div>
+                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#DDD0F0",marginBottom:2}}>My Diagnosis</p>
+                  <p style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#fff",margin:0}}>{diagnosisCondition}</p>
+                </div>
+              </div>
+            )}
+            <div style={{...card,marginBottom:18}}>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",marginBottom:6}}>My Diagnosis</h3>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginBottom:14,lineHeight:1.5}}>Have you received a formal diagnosis?</p>
+              <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:14}}>
+                {["Yes","Not yet but I am pursuing one","I am self-researching"].map(opt=>{
+                  const sel = diagnosisStatus===opt;
+                  return (
+                    <button key={opt} type="button" onClick={()=>{ setDiagnosisStatus(opt); if(opt!=="Yes") setDiagnosisCondition(""); }}
+                      style={{background:sel?"rgba(91,75,122,0.08)":"transparent",color:"#3D2B5C",
+                        border:"1px solid "+(sel?"#5B4B7A":"#DDD0F0"),borderRadius:8,
+                        padding:"8px 12px",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:sel?600:400,
+                        cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:9,width:"100%"}}>
+                      <div style={{width:18,height:18,borderRadius:"50%",border:"2px solid "+(sel?"#5B4B7A":"#C4B0E0"),
+                        background:sel?"#5B4B7A":"transparent",flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        {sel && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>&#10003;</span>}
+                      </div>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+              {diagnosisStatus==="Yes" && (
+                <div style={{marginTop:6}}>
+                  <label style={lbl}>Select your diagnosis</label>
+                  <select value={diagnosisCondition} onChange={e=>setDiagnosisCondition(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid #DDD0F0",
+                      fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",background:"#F4F0FA",cursor:"pointer"}}>
+                    <option value="">— Choose a condition —</option>
+                    {["CCCA","LPP","FFA","DLE","Folliculitis Decalvans","Dissecting Cellulitis"].map(c=>(
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
             <div style={{display:"grid",gap:11}}>
               {CONDITIONS.map(c=>(
                 <div key={c.id} className="lift" onClick={()=>setExpandedCond(expandedCond===c.id?null:c.id)}
@@ -2332,6 +2564,94 @@ function AppMain({ session }) {
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",marginBottom:20,maxWidth:660,lineHeight:1.75}}>
               Treatment is type-specific and requires a dermatologist's diagnosis. The goal is always to <strong>halt active inflammation before permanent follicle loss occurs.</strong>
             </p>
+            {/* Treatment Tracker */}
+            <div style={{...card,marginBottom:18}}>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#5B4B7A",marginBottom:6}}>Treatment Tracker</h3>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginBottom:14,lineHeight:1.5}}>Log your treatments to track what works over time.</p>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+                <div>
+                  <label style={lbl}>Treatment Name</label>
+                  <select value={txName} onChange={e=>setTxName(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid #DDD0F0",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",background:"#F4F0FA",boxSizing:"border-box",cursor:"pointer"}}>
+                    <option value="">— Select treatment —</option>
+                    {["Topical Corticosteroids","Intralesional Corticosteroid Injections","Hydroxychloroquine (Plaquenil)","Doxycycline","Minocycline","Topical Minoxidil","Tacrolimus","JAK Inhibitors","Hair Transplant Surgery","Other"].map(t=>(
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>Start Date</label>
+                  <input type="date" value={txStart} onChange={e=>setTxStart(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid #DDD0F0",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",background:"#F4F0FA",boxSizing:"border-box"}}/>
+                </div>
+                <div>
+                  <label style={lbl}>Dosage / Frequency</label>
+                  <input value={txDosage} onChange={e=>setTxDosage(e.target.value)} placeholder="e.g. 100mg twice daily"
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid #DDD0F0",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",background:"#F4F0FA",boxSizing:"border-box"}}/>
+                </div>
+                <div>
+                  <label style={lbl}>Prescribing Doctor</label>
+                  <input value={txDoctor} onChange={e=>setTxDoctor(e.target.value)} placeholder="Dr. ..."
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1px solid #DDD0F0",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",background:"#F4F0FA",boxSizing:"border-box"}}/>
+                </div>
+              </div>
+              <div style={{marginBottom:10}}>
+                <label style={lbl}>Notes</label>
+                <textarea spellCheck={true} autoCorrect="on" autoCapitalize="sentences" value={txNotes} onChange={e=>setTxNotes(e.target.value)} placeholder="Side effects, observations, how you feel..."
+                  style={{...ta,minHeight:70}}/>
+              </div>
+              <div style={{marginBottom:14}}>
+                <label style={lbl}>How is it working?</label>
+                <div style={{display:"flex",gap:8}}>
+                  {["Helping","No change","Making it worse"].map(opt=>{
+                    const sel = txRating===opt;
+                    const rc = opt==="Helping"?"#2E7D32":opt==="No change"?"#888":"#C62828";
+                    return (
+                      <button key={opt} type="button" onClick={()=>setTxRating(opt)}
+                        style={{flex:1,padding:"9px 10px",borderRadius:8,fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:sel?700:400,
+                          cursor:"pointer",border:"2px solid "+(sel?rc:"#DDD0F0"),background:sel?rc+"14":"transparent",color:sel?rc:"#3D2B5C"}}>
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <button className="lift" onClick={()=>{
+                if(!txName.trim()) return;
+                setTreatmentLog(prev=>[{id:Date.now(),name:txName.trim(),start:txStart,dosage:txDosage,doctor:txDoctor,notes:txNotes,rating:txRating,savedDate:new Date().toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"})},...prev]);
+                setTxName(""); setTxStart(""); setTxDosage(""); setTxDoctor(""); setTxNotes(""); setTxRating("");
+                showToast("Treatment logged.");
+              }} style={{...gold,padding:"10px 22px",fontSize:13}} disabled={!txName.trim()}>
+                Save Treatment
+              </button>
+            </div>
+
+            {/* Saved treatments */}
+            {treatmentLog.length>0 && (
+              <div style={{marginBottom:22}}>
+                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#5B4B7A",marginBottom:10}}>My Treatments</h3>
+                <div style={{display:"grid",gap:10}}>
+                  {treatmentLog.map(tx=>{
+                    const rc = tx.rating==="Helping"?"#2E7D32":tx.rating==="Making it worse"?"#C62828":"#888";
+                    return (
+                      <div key={tx.id} style={{...card,padding:"14px 18px",borderLeft:"4px solid "+rc}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6,flexWrap:"wrap",gap:6}}>
+                          <div>
+                            <p style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#5B4B7A",margin:0}}>{tx.name}</p>
+                            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",margin:0}}>{tx.savedDate}{tx.start?" · Started "+tx.start:""}</p>
+                          </div>
+                          {tx.rating && <span style={{...pill,background:rc+"18",color:rc,border:"1px solid "+rc+"30",fontWeight:700}}>{tx.rating}</span>}
+                        </div>
+                        {tx.dosage && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#3D2B5C",margin:"4px 0"}}><strong>Dosage:</strong> {tx.dosage}</p>}
+                        {tx.doctor && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#3D2B5C",margin:"4px 0"}}><strong>Doctor:</strong> {tx.doctor}</p>}
+                        {tx.notes && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#5B4B7A",margin:"4px 0",fontStyle:"italic"}}>{tx.notes}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div style={{background:"#5B4B7A",borderRadius:16,padding:"26px 28px",marginBottom:22,color:"#F4F0FA"}}>
               <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#F4F0FA",marginBottom:10}}>Understanding Inflammation</h3>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,lineHeight:1.88,color:"rgba(250,248,245,.8)"}}>
@@ -2477,18 +2797,64 @@ function AppMain({ session }) {
                 <h2 style={h2}>History Log</h2>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginTop:3}}>{history.length} saved {history.length===1?"entry":"entries"} · {fmtFull(now)}</p>
               </div>
-              <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
-                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#3D2B5C"}}>Filter:</span>
-                {["all","mild","moderate","severe"].map(f=>(
-                  <button key={f} onClick={()=>setHistFilter(f)}
-                    style={{background:histFilter===f?"#5B4B7A":"#fff",color:histFilter===f?"#F4F0FA":"#3D2B5C",
-                      border:"1px solid #DDD0F0",borderRadius:7,padding:"7px 12px",fontSize:11,
-                      fontFamily:"'DM Sans',sans-serif",textTransform:"capitalize"}}>
-                    {f==="all"?"All":f}
-                  </button>
-                ))}
+              <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
+                <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#3D2B5C"}}>Date range:</span>
+                  <input type="date" value={histFrom} onChange={e=>setHistFrom(e.target.value)}
+                    style={{padding:"6px 10px",borderRadius:7,border:"1px solid #DDD0F0",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#3D2B5C",background:"#F4F0FA"}}/>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8"}}>to</span>
+                  <input type="date" value={histTo} onChange={e=>setHistTo(e.target.value)}
+                    style={{padding:"6px 10px",borderRadius:7,border:"1px solid #DDD0F0",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#3D2B5C",background:"#F4F0FA"}}/>
+                  {(histFrom||histTo) && (
+                    <button onClick={()=>{setHistFrom("");setHistTo("");}}
+                      style={{background:"transparent",border:"1px solid #DDD0F0",borderRadius:7,padding:"6px 10px",fontSize:11,
+                        fontFamily:"'DM Sans',sans-serif",color:"#8878A8",cursor:"pointer"}}>
+                      Clear Dates
+                    </button>
+                  )}
+                </div>
+                <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#3D2B5C"}}>Filter:</span>
+                  {["all","mild","moderate","severe"].map(f=>(
+                    <button key={f} onClick={()=>setHistFilter(f)}
+                      style={{background:histFilter===f?"#5B4B7A":"#fff",color:histFilter===f?"#F4F0FA":"#3D2B5C",
+                        border:"1px solid #DDD0F0",borderRadius:7,padding:"7px 12px",fontSize:11,
+                        fontFamily:"'DM Sans',sans-serif",textTransform:"capitalize"}}>
+                      {f==="all"?"All":f}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+
+            <div style={{display:"flex",alignItems:"center",gap:10,background:researchOptIn==="yes"?"rgba(46,125,50,.08)":"rgba(136,120,168,.08)",
+              border:"1px solid "+(researchOptIn==="yes"?"rgba(46,125,50,.25)":"rgba(136,120,168,.25)"),borderRadius:10,padding:"10px 16px",marginBottom:16}}>
+              <Heart size={14} color={researchOptIn==="yes"?"#2E7D32":"#8878A8"}/>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,color:researchOptIn==="yes"?"#2E7D32":"#8878A8"}}>
+                {researchOptIn==="yes"?"You are contributing anonymized data to research.":researchOptIn==="no"?"Your data is private and not shared with research.":"Research participation preference not yet set."}
+              </span>
+            </div>
+
+            {researchLog.length>0 && (
+              <div style={{...card,marginBottom:18}}>
+                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#5B4B7A",marginBottom:10}}>Research Participation History</h3>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {researchLog.map(r=>(
+                    <div key={r.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,
+                      background:r.choice==="yes"?"rgba(46,125,50,.06)":"rgba(136,120,168,.06)",
+                      border:"1px solid "+(r.choice==="yes"?"rgba(46,125,50,.2)":"rgba(136,120,168,.2)")}}>
+                      <Heart size={13} color={r.choice==="yes"?"#2E7D32":"#8878A8"}/>
+                      <div style={{flex:1}}>
+                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,color:r.choice==="yes"?"#2E7D32":"#8878A8"}}>
+                          {r.choice==="yes"?"Opted in to research":"Opted out of research"}
+                        </span>
+                      </div>
+                      <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8"}}>{r.date} · {r.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {!history.length ? (
               <div style={{...card,textAlign:"center",padding:"56px 28px"}}>
@@ -2538,9 +2904,15 @@ function AppMain({ session }) {
                           <p style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#5B4B7A"}}>{e.fullDate}</p>
                           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8"}}>Recorded at {e.time}</p>
                         </div>
-                        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                           <span style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:800,color:SC(Math.round(e.avgScore))}}>{e.avgScore}/5</span>
                           <span style={{...pill,background:SC(Math.round(e.avgScore))+"18",color:SC(Math.round(e.avgScore)),border:"1px solid "+SC(Math.round(e.avgScore))+"30",textTransform:"capitalize"}}>{e.riskLevel}</span>
+                          {e.researchOptIn && (
+                            <span style={{...pill,background:e.researchOptIn==="yes"?"rgba(46,125,50,.1)":"rgba(136,120,168,.1)",
+                              color:e.researchOptIn==="yes"?"#2E7D32":"#8878A8",
+                              border:"1px solid "+(e.researchOptIn==="yes"?"rgba(46,125,50,.3)":"rgba(136,120,168,.3)"),
+                              fontSize:9}}>{e.researchOptIn==="yes"?"Research: In":"Research: Out"}</span>
+                          )}
                         </div>
                       </div>
                       <div className="grid-sym" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:13}}>
@@ -2612,7 +2984,7 @@ function AppMain({ session }) {
           <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
             <img className="footer-logo-img" src={LOGO} alt="Beyond the Hairline" style={{height:80,maxWidth:"100%",objectFit:"contain",opacity:.9,aspectRatio:"auto"}}/>
           </div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#F4F0FA",marginBottom:4}}>Beyond the Hairline</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#F4F0FA",marginBottom:4}}>Beyond the Hairline™</div>
           <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C4B0E0",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>Scarring Alopecia Tracker</div>
           <div style={{width:60,height:1,background:"rgba(201,168,130,.2)",margin:"0 auto 16px"}}/>
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(201,168,130,.5)",maxWidth:640,margin:"0 auto 8px",lineHeight:1.7}}>

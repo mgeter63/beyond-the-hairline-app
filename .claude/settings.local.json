@@ -4,7 +4,8 @@
       "Bash(npx supabase:*)",
       "Bash(cd:*)",
       "Bash(npm run:*)",
-      "Bash(timeout 10 npx vite --host)"
+      "Bash(timeout 10 npx vite --host)",
+      "Bash(npx vite:*)"
     ]
   }
 }
