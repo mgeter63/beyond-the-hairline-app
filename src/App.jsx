@@ -647,12 +647,57 @@ function MFASetup({ onDone, onCancel }) {
   );
 }
 
+// Coming Soon page for non-logged-in visitors
+function ComingSoon() {
+  return (
+    <div style={{minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",
+      backgroundImage:`url(${heroGroup})`,backgroundSize:"cover",backgroundPosition:"center"}}>
+      <div style={{position:"absolute",inset:0,background:"rgba(51,30,74,0.88)"}}/>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+      `}</style>
+      <div style={{position:"relative",zIndex:1,textAlign:"center",padding:"40px 24px",maxWidth:520}}>
+        <img src={LOGO} alt="Beyond the Hairline" style={{width:100,height:100,objectFit:"contain",margin:"0 auto 20px",display:"block",opacity:.95}}/>
+        <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,5vw,44px)",fontWeight:800,color:"#F4F0FA",lineHeight:1.1,marginBottom:8,animation:"fadeUp .6s ease both"}}>
+          Beyond the Hairline™
+        </h1>
+        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#C4B0E0",letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:32,fontWeight:500}}>
+          Scarring Alopecia Tracker
+        </p>
+        <div style={{background:"rgba(244,240,250,0.08)",borderRadius:16,padding:"28px 24px",border:"1px solid rgba(196,176,224,.2)",marginBottom:28,animation:"fadeUp .6s .2s ease both",backdropFilter:"blur(6px)"}}>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,color:"#F4F0FA",lineHeight:1.75,margin:0}}>
+            We are currently in private beta.
+          </p>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,color:"#F4F0FA",lineHeight:1.75,margin:"12px 0 0"}}>
+            To request access or learn more, contact us at
+          </p>
+          <a href="mailto:mgeter@601sistas.com" style={{fontFamily:"'DM Sans',sans-serif",fontSize:16,fontWeight:700,color:"#F5B800",textDecoration:"none",display:"inline-block",marginTop:8}}>
+            mgeter@601sistas.com
+          </a>
+        </div>
+        <div style={{width:60,height:2,background:"linear-gradient(90deg,transparent,#F5B800,transparent)",margin:"0 auto",borderRadius:2}}/>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [securityLogout, setSecurityLogout] = useState(false);
   const [mfaPending, setMfaPending] = useState(false);
+
+  const isLoginRoute = window.location.pathname === "/login" || window.location.hash === "#login";
+
+  // Force sign out all users on app load
+  useEffect(() => {
+    supabase.auth.signOut().then(() => {
+      setSession(null);
+      setAuthLoading(false);
+    });
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -705,7 +750,10 @@ export default function App() {
   }
 
   if (!session) {
-    return <AuthScreen securityLogout={securityLogout} />;
+    if (isLoginRoute) {
+      return <AuthScreen securityLogout={securityLogout} />;
+    }
+    return <ComingSoon />;
   }
 
   if (mfaPending) {
