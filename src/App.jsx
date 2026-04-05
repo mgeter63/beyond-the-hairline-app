@@ -24,7 +24,7 @@ const fmtTime  = d => d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-dig
 const TABS = [
   {id:"home",label:"Home"},{id:"log",label:"Symptom Log"},{id:"hair",label:"Hair Profile"},
   {id:"photos",label:"My Photo Log"},{id:"visit",label:"My Appointment Companion"},{id:"conditions",label:"Understanding My Condition"},
-  {id:"treatment",label:"Treatment, Care, and Nutrition"},{id:"sayit",label:"Say It Right"},{id:"stories",label:"Stories"},{id:"history",label:"History"},
+  {id:"treatment",label:"Treatment, Care, and Nutrition"},{id:"stories",label:"Stories"},{id:"history",label:"History"},{id:"sayit",label:"Say It Right"},
 ];
 
 const MEDICAL_TERMS = [
@@ -386,6 +386,9 @@ function AuthScreen({ onAuth, securityLogout }) {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -404,6 +407,7 @@ function AuthScreen({ onAuth, securityLogout }) {
       } else if (mode === "signup") {
         const { data, error: err } = await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } });
         if (err) throw err;
+        if (phone) await supabase.auth.updateUser({ phone: phone });
         if (data.user && !data.session) {
           setConfirmMsg("You did it. Your Beyond the Hairline account is ready for you. This is your personal space to track symptoms, document your hair care routine, prepare for appointments, and tell your story. Start whenever you are ready. There is no rush.");
           setMode("login");
@@ -468,6 +472,32 @@ function AuthScreen({ onAuth, securityLogout }) {
             </div>
           )}
 
+          {otpSent && (
+            <div style={{background:"rgba(244,240,250,.07)",border:"1px solid rgba(196,176,224,.3)",borderRadius:10,padding:"16px",marginBottom:16}}>
+              <label style={{fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8878A8",marginBottom:6,display:"block"}}>Verification Code</label>
+              <input className="auth-input" type="text" inputMode="numeric" maxLength={6} value={otp} onChange={e=>setOtp(e.target.value)}
+                style={field} placeholder="Enter 6-digit code"/>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",margin:"6px 0 12px 0",lineHeight:"1.4"}}>Enter the 6-digit code we sent to your phone.</p>
+              <button type="button" onClick={async()=>{
+                try {
+                  setLoading(true);
+                  const { error: err } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
+                  if (err) throw err;
+                  setOtpSent(false);
+                  setOtp("");
+                } catch (err) {
+                  setError(err.message || "Verification failed. Please try again.");
+                } finally {
+                  setLoading(false);
+                }
+              }} disabled={loading || otp.length < 6}
+                style={{width:"100%",padding:"12px",borderRadius:10,border:"none",background:otp.length>=6?"#F5B800":"rgba(196,176,224,.3)",color:otp.length>=6?"#1a1a2e":"#8878A8",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:700,cursor:otp.length>=6?"pointer":"not-allowed",transition:"all .2s"}}>
+                {loading ? "Verifying..." : "Verify Phone Number"}
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div style={{marginBottom:14}}>
@@ -484,6 +514,14 @@ function AuthScreen({ onAuth, securityLogout }) {
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",margin:"6px 0 0 0",lineHeight:"1.4"}}>We will only use your email to send you account updates. We do not sell or share your data.</p>
               )}
             </div>
+            {mode === "signup" && (
+              <div style={{marginBottom:14}}>
+                <label style={{fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8878A8",marginBottom:6,display:"block"}}>Mobile Phone Number</label>
+                <input className="auth-input" type="tel" value={phone} onChange={e=>setPhone(e.target.value)}
+                  style={field} placeholder="+1 (601) 555-0000"/>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",margin:"6px 0 0 0",lineHeight:"1.4"}}>We'll send a one-time code to verify your number.</p>
+              </div>
+            )}
             {mode !== "forgot" && (
               <div style={{marginBottom:22}}>
                 <label style={{fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8878A8",marginBottom:6,display:"block"}}>Password</label>
