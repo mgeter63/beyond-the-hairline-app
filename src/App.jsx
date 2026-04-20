@@ -2,6 +2,8 @@ import jsPDF from "jspdf";
 import { supabase } from "./supabase";
 
 import { useState, useEffect, useRef, memo, useCallback } from "react";
+import TermsOfService from "./TermsOfService";
+import PrivacyPolicy from "./PrivacyPolicy";
 import { Flame, Zap, Activity, AlertCircle, Eye, Hand, Droplets, Wind, Layers,
   Scissors, ChevronDown, ChevronUp, Camera, FileText, ClipboardList,
   BookOpen, Leaf, Pill, Users, BarChart2, Download, X, CheckCircle, Info,
@@ -387,8 +389,26 @@ function AuthScreen({ onAuth, securityLogout }) {
   const [showPw, setShowPw] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+
+  const handleVerifyOtp = async () => {
+    setError(""); setLoading(true);
+    try {
+      const formatted = "+1" + phone.replace(/\D/g, "");
+      const { error: err } = await supabase.auth.verifyOtp({ phone: formatted, token: otpCode, type: "sms" });
+      if (err) throw err;
+      setOtpSent(false);
+      setOtpCode("");
+      setConfirmMsg("You did it. Your Beyond the Hairline account is ready for you. This is your personal space to track symptoms, document your hair care routine, prepare for appointments, and tell your story. Start whenever you are ready. There is no rush.");
+      setMode("login");
+    } catch (err) {
+      setError(err.message || "Verification failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -397,6 +417,9 @@ function AuthScreen({ onAuth, securityLogout }) {
       if (mode === "signup") {
         const pwValid = password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
         if (!pwValid) { setError("Please meet all password requirements."); setLoading(false); return; }
+        const digitsOnly = phone.replace(/\D/g, "");
+        if (digitsOnly.length !== 10) { setError("Please enter a valid 10-digit phone number."); setLoading(false); return; }
+        if (!smsConsent) { setError("You must consent to receive an SMS verification code to sign up."); setLoading(false); return; }
       }
       if (mode === "forgot") {
         const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
@@ -407,11 +430,10 @@ function AuthScreen({ onAuth, securityLogout }) {
       } else if (mode === "signup") {
         const { data, error: err } = await supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } });
         if (err) throw err;
-        if (phone) await supabase.auth.updateUser({ phone: phone });
-        if (data.user && !data.session) {
-          setConfirmMsg("You did it. Your Beyond the Hairline account is ready for you. This is your personal space to track symptoms, document your hair care routine, prepare for appointments, and tell your story. Start whenever you are ready. There is no rush.");
-          setMode("login");
-        }
+        const formatted = "+1" + phone.replace(/\D/g, "");
+        await supabase.auth.updateUser({ phone: formatted });
+        await supabase.auth.signOut();
+        setOtpSent(true);
       } else {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
@@ -472,32 +494,27 @@ function AuthScreen({ onAuth, securityLogout }) {
             </div>
           )}
 
-          {otpSent && (
-            <div style={{background:"rgba(244,240,250,.07)",border:"1px solid rgba(196,176,224,.3)",borderRadius:10,padding:"16px",marginBottom:16}}>
-              <label style={{fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8878A8",marginBottom:6,display:"block"}}>Verification Code</label>
-              <input className="auth-input" type="text" inputMode="numeric" maxLength={6} value={otp} onChange={e=>setOtp(e.target.value)}
-                style={field} placeholder="Enter 6-digit code"/>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",margin:"6px 0 12px 0",lineHeight:"1.4"}}>Enter the 6-digit code we sent to your phone.</p>
-              <button type="button" onClick={async()=>{
-                try {
-                  setLoading(true);
-                  const { error: err } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-                  if (err) throw err;
-                  setOtpSent(false);
-                  setOtp("");
-                } catch (err) {
-                  setError(err.message || "Verification failed. Please try again.");
-                } finally {
-                  setLoading(false);
-                }
-              }} disabled={loading || otp.length < 6}
-                style={{width:"100%",padding:"12px",borderRadius:10,border:"none",background:otp.length>=6?"#F5B800":"rgba(196,176,224,.3)",color:otp.length>=6?"#1a1a2e":"#8878A8",
-                  fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:700,cursor:otp.length>=6?"pointer":"not-allowed",transition:"all .2s"}}>
+          {otpSent ? (
+            <div>
+              <h2 style={{fontFamily:"'DM Sans',sans-serif",fontSize:20,fontWeight:800,color:"#F4F0FA",textAlign:"center",marginBottom:6}}>Verify Your Phone</h2>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#8878A8",textAlign:"center",marginBottom:20,lineHeight:"1.4"}}>Enter the 6-digit code we sent to your phone.</p>
+              {error && (
+                <div style={{background:"#D32F2F22",border:"1px solid #D32F2F55",borderRadius:10,padding:"10px 14px",marginBottom:14}}>
+                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#D32F2F",margin:0}}>{error}</p>
+                </div>
+              )}
+              <div style={{marginBottom:16}}>
+                <label style={{fontFamily:"'DM Sans',sans-serif",fontSize:10.5,fontWeight:700,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8878A8",marginBottom:6,display:"block"}}>Verification Code</label>
+                <input className="auth-input" type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={e=>setOtpCode(e.target.value.replace(/\D/g,""))}
+                  style={{...field,textAlign:"center",letterSpacing:"8px",fontSize:24}} placeholder="000000"/>
+              </div>
+              <button type="button" onClick={handleVerifyOtp} disabled={loading || otpCode.length < 6}
+                style={{width:"100%",padding:"14px",borderRadius:10,border:"none",background:otpCode.length>=6?"#F5B800":"rgba(196,176,224,.3)",color:otpCode.length>=6?"#2D1B5C":"#8878A8",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:800,cursor:otpCode.length>=6?"pointer":"not-allowed",transition:"all .2s"}}>
                 {loading ? "Verifying..." : "Verify Phone Number"}
               </button>
             </div>
-          )}
-
+          ) : (<>
           <form onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div style={{marginBottom:14}}>
@@ -520,6 +537,15 @@ function AuthScreen({ onAuth, securityLogout }) {
                 <input className="auth-input" type="tel" value={phone} onChange={e=>setPhone(e.target.value)}
                   style={field} placeholder="+1 (601) 555-0000"/>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",margin:"6px 0 0 0",lineHeight:"1.4"}}>We'll send a one-time code to verify your number.</p>
+                <label style={{display:"flex",alignItems:"flex-start",gap:8,marginTop:10,cursor:"pointer"}}>
+                  <input type="checkbox" checked={smsConsent} onChange={e=>setSmsConsent(e.target.checked)}
+                    style={{marginTop:3,accentColor:"#F5B800"}}/>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#8878A8",lineHeight:"1.4"}}>
+                    I consent to receive a one-time SMS verification code. Standard message and data rates may apply. By signing up you agree to our{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" style={{color:"#F5B800",textDecoration:"underline"}}>Terms of Service</a> and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{color:"#F5B800",textDecoration:"underline"}}>Privacy Policy</a>.
+                  </span>
+                </label>
               </div>
             )}
             {mode !== "forgot" && (
@@ -576,6 +602,7 @@ function AuthScreen({ onAuth, securityLogout }) {
             </button>
           </p>
           <img src={LOGO} alt="Beyond the Hairline" style={{width:68,height:68,objectFit:"contain",margin:"14px auto 0",display:"block"}} />
+          </>)}
         </div>
       </div>
     </div>
@@ -831,6 +858,8 @@ export default function App() {
   const [betaAccess, setBetaAccess] = useState(false);
 
   const isLoginRoute = window.location.pathname === "/login" || window.location.hash === "#login";
+  const isTermsRoute = window.location.pathname === "/terms";
+  const isPrivacyRoute = window.location.pathname === "/privacy";
 
   // Force sign out all users on app load
   useEffect(() => {
@@ -884,6 +913,14 @@ export default function App() {
         <p style={{color:"#5B4B7A",fontSize:14}}>Loading...</p>
       </div>
     );
+  }
+
+  if (isTermsRoute) {
+    return <TermsOfService />;
+  }
+
+  if (isPrivacyRoute) {
+    return <PrivacyPolicy />;
   }
 
   if (passwordRecovery) {

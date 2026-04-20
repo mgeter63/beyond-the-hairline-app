@@ -5,7 +5,8 @@
       "Bash(cd:*)",
       "Bash(npm run:*)",
       "Bash(timeout 10 npx vite --host)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(git push *)"
     ]
   }
 }
