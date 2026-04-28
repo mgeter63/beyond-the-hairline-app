@@ -507,7 +507,7 @@ function AuthScreen({ onAuth }) {
   );
 }
 
-export default function App() {
+function BetaGate({ children }) {
   const [betaUnlocked, setBetaUnlocked] = useState(() => sessionStorage.getItem("bth_beta") === "yes");
   const [betaInput, setBetaInput] = useState("");
   const [betaError, setBetaError] = useState("");
@@ -529,6 +529,10 @@ export default function App() {
       </div>
     );
   }
+  return children;
+}
+
+export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
@@ -563,7 +567,7 @@ export default function App() {
     return <AuthScreen />;
   }
 
-  return <AppMain session={session} />;
+  return <BetaGate><AppMain session={session} /></BetaGate>;
 }
 
 function AppMain({ session }) {
