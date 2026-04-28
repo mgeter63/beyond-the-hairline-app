@@ -564,7 +564,7 @@ export default function App() {
   }
 
   if (!session) {
-    return <AuthScreen />;
+    return <BetaGate><AuthScreen /></BetaGate>;
   }
 
   return <BetaGate><AppMain session={session} /></BetaGate>;
