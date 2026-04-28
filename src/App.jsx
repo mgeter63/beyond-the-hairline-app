@@ -529,26 +529,6 @@ export default function App() {
       </div>
     );
   }
-  const [betaUnlocked, setBetaUnlocked] = useState(() => sessionStorage.getItem("bth_beta") === "yes");
-  const [betaInput, setBetaInput] = useState("");
-  const [betaError, setBetaError] = useState("");
-  if (!betaUnlocked) {
-    return (
-      <div style={{fontFamily:"'DM Sans',sans-serif",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#2D1B5C",padding:20}}>
-        <div style={{background:"rgba(255,255,255,0.95)",borderRadius:18,padding:"40px 32px",maxWidth:400,width:"100%",textAlign:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
-          <img src={LOGO} alt="Beyond the Hairline" style={{width:80,height:80,objectFit:"contain",margin:"0 auto 20px",display:"block"}} />
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#5B4B7A",marginBottom:8}}>Private Beta Access</h2>
-          <p style={{fontSize:13,color:"#8878A8",marginBottom:24}}>This research app is currently invite-only. Enter your beta access password to continue.</p>
-          {betaError && <p style={{color:"#D32F2F",fontSize:13,marginBottom:12}}>{betaError}</p>}
-          <input type="password" value={betaInput} onChange={e=>setBetaInput(e.target.value)} placeholder="Enter beta password"
-            style={{width:"100%",padding:"13px 16px",borderRadius:10,border:"1px solid #DDD0F0",fontSize:15,color:"#5B4B7A",outline:"none",marginBottom:16,boxSizing:"border-box"}} />
-          <button onClick={()=>{ if(betaInput==="BTH2026BUR"){sessionStorage.setItem("bth_beta","yes");setBetaUnlocked(true);}else{setBetaError("Incorrect password. Please try again.");} }}
-            style={{width:"100%",background:"#F5B800",color:"#2D1B5C",border:"none",borderRadius:10,padding:14,fontSize:15,fontWeight:800,cursor:"pointer"}}>
-            Enter
-          </button>
-        </div>
-      </div>
-    );
   }
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
