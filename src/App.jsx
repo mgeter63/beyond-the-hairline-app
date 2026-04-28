@@ -1,4 +1,4 @@
-﻿import jsPDF from "jspdf";
+import jsPDF from "jspdf";
 import { supabase } from "./supabase";
 
 import { useState, useEffect, useRef } from "react";
@@ -30,20 +30,20 @@ const TABS = [
 const SYMPTOMS = [
   {id:"burning",   label:"Burning",                    Icon:Flame,       desc:"Hot or fiery sensation on or beneath the scalp."},
   {id:"itching",   label:"Itching",                    Icon:Zap,         desc:"Persistent urge to scratch; often signals active follicle inflammation."},
-  {id:"tingling",  label:"Tingling / Crawling",        Icon:Activity,    desc:"Pins-and-needles feeling â€” an early warning sign of nerve involvement."},
+  {id:"tingling",  label:"Tingling / Crawling",        Icon:Activity,    desc:"Pins-and-needles feeling — an early warning sign of nerve involvement."},
   {id:"pain",      label:"Scalp Pain",                 Icon:AlertCircle, desc:"Tenderness or outright pain when touching or pressing the scalp."},
   {id:"redness",   label:"Redness",                    Icon:Eye,         desc:"Visible redness or discoloration around hair follicles."},
   {id:"tenderness",label:"Tenderness",                 Icon:Hand,        desc:"Sensitivity when hair or scalp is touched, even lightly."},
   {id:"bumps",     label:"Bumps",                      Icon:Circle,      desc:"Raised areas or lumps on the scalp around follicle openings."},
-  {id:"pustules",  label:"Pustules",                   Icon:Droplets,    desc:"Small pus-filled bumps â€” may indicate bacterial involvement."},
+  {id:"pustules",  label:"Pustules",                   Icon:Droplets,    desc:"Small pus-filled bumps — may indicate bacterial involvement."},
   {id:"blisters",  label:"Blisters",                   Icon:Wind,        desc:"Fluid-filled sacs on the scalp. Require prompt medical attention."},
-  {id:"scaling",   label:"Scaling / Flaking",          Icon:Layers,      desc:"Flaky or scaly skin around follicles â€” a key clinical marker."},
+  {id:"scaling",   label:"Scaling / Flaking",          Icon:Layers,      desc:"Flaky or scaly skin around follicles — a key clinical marker."},
   {id:"scabs",     label:"Scabs / Crusting",           Icon:Circle,      desc:"Crusted areas from dried discharge or healed irritation."},
-  {id:"oozing",    label:"Oozing / Draining",          Icon:Minus,       desc:"Discharge from follicles or scalp lesions â€” warrants prompt care."},
+  {id:"oozing",    label:"Oozing / Draining",          Icon:Minus,       desc:"Discharge from follicles or scalp lesions — warrants prompt care."},
   {id:"shedding",  label:"Increased Shedding",         Icon:TrendingDown,desc:"More hair than usual falling out during washing, combing, or styling."},
   {id:"breakage",  label:"Breakage",                   Icon:Scissors,    desc:"Hair snapping along the shaft rather than shedding from the root."},
-  {id:"widening",  label:"Widening Part",              Icon:ScanLine,    desc:"The part appears wider than before â€” an early CCCA indicator."},
-  {id:"crownthin", label:"Crown Thinning",             Icon:Search,      desc:"Visible thinning at the center/crown â€” hallmark sign of CCCA."},
+  {id:"widening",  label:"Widening Part",              Icon:ScanLine,    desc:"The part appears wider than before — an early CCCA indicator."},
+  {id:"crownthin", label:"Crown Thinning",             Icon:Search,      desc:"Visible thinning at the center/crown — hallmark sign of CCCA."},
   {id:"baldspot",  label:"New or Expanding Bald Spot", Icon:AlertCircle, desc:"A new area of hair loss or an existing patch that appears to be growing."},
 ];
 
@@ -390,6 +390,7 @@ function AuthScreen({ onAuth }) {
       } else {
         setError(err.message || "Something went wrong. Please try again.");
       }
+    }
     setLoading(false);
   };
 
@@ -700,7 +701,7 @@ function AppMain({ session }) {
           }));
           setSavedPhotos(mapped);
         } else {
-          // No data from Supabase â€” keep localStorage fallback (already loaded in useState init)
+          // No data from Supabase — keep localStorage fallback (already loaded in useState init)
         }
       } catch (err) {
         console.warn("Supabase photo fetch failed, using localStorage:", err);
@@ -796,7 +797,7 @@ function AppMain({ session }) {
           <div style={{width:18,height:18,borderRadius:4,border:"2px solid "+(checked?"#5B4B7A":"#C4B0E0"),
             background:checked?"#5B4B7A":"transparent",flexShrink:0,
             display:"flex",alignItems:"center",justifyContent:"center"}}>
-            {checked && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>âœ“</span>}
+            {checked && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>✓</span>}
           </div>
           <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#5B4B7A",fontWeight:checked?600:400}}>My routine in this area has changed recently due to my scalp condition.</span>
         </button>
@@ -834,7 +835,7 @@ function AppMain({ session }) {
     };
     setHairHistory(prev => [entry, ...prev]);
 
-    // Update active styles â€” carry forward anything with a recurring frequency
+    // Update active styles — carry forward anything with a recurring frequency
     const updated = {...activeStyles};
     const fields = [
       {key:"tension", val:Array.isArray(tension)?tension.join(", "):tension, freq:tensionFreq},
@@ -947,6 +948,7 @@ function AppMain({ session }) {
           } else {
             console.warn("Storage upload failed, using base64 fallback:", upErr);
           }
+        }
 
         let dbErr;
         ({ error: dbErr } = await supabase.from("photo_logs").insert({
@@ -1086,7 +1088,7 @@ function AppMain({ session }) {
 
       <header style={{background:"#5B4B7A",position:"sticky",top:0,zIndex:300,borderBottom:"1px solid rgba(201,168,130,.14)"}}>
         <div style={{maxWidth:1200,margin:"0 auto",padding:"0 20px"}}>
-          {/* Brand row â€” centered */}
+          {/* Brand row — centered */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:12,paddingBottom:4,gap:2,cursor:"pointer"}} onClick={()=>setTab("home")}>
             <img className="header-logo-img" src={LOGO} alt="Beyond the Hairline" width="160" height="160" style={{width:160,height:160,objectFit:"contain",flexShrink:0}} />
             <div style={{textAlign:"center"}}>
@@ -1094,10 +1096,10 @@ function AppMain({ session }) {
               <div className="header-brand-sub" style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#E8DCF8",letterSpacing:"0.14em",textTransform:"uppercase",marginTop:3,fontWeight:500}}>Scarring Alopecia Tracker</div>
             </div>
             <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(201,168,130,.45)",marginTop:2}}>
-              {fmtFull(now)} Â· {fmtTime(now)}
+              {fmtFull(now)} · {fmtTime(now)}
             </div>
           </div>
-          {/* Nav row â€” centered */}
+          {/* Nav row — centered */}
           <div style={{paddingBottom:10,paddingTop:6}}>
             <nav className="nav-scroll" style={{display:"flex",gap:4,justifyContent:"center",flexWrap:"wrap"}}>
               {TABS.map(t=>(
@@ -1183,7 +1185,7 @@ function AppMain({ session }) {
               <div className="hero-grid" style={{display:"grid",gridTemplateColumns:"1fr auto",gap:36,alignItems:"center"}}>
                 <div>
                   <span style={{...pill,background:"rgba(155,127,192,.25)",color:"#C4B0E0",marginBottom:16,display:"inline-flex"}}>
-                    <Heart size={10}/>&nbsp;Scarring Alopecia Â· Patient Tracking Â· Advocacy
+                    <Heart size={10}/>&nbsp;Scarring Alopecia · Patient Tracking · Advocacy
                   </span>
                   <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(30px,4vw,50px)",fontWeight:800,
                     color:"#F4F0FA",lineHeight:1.1,marginBottom:14}}>
@@ -1261,7 +1263,7 @@ function AppMain({ session }) {
           <div className="fi" style={{paddingTop:32}}>
             <span style={{...pill,background:"rgba(139,58,26,.1)",color:"#7B5EA7",marginBottom:13,display:"inline-flex"}}><ClipboardList size={10}/>&nbsp;Daily Entry</span>
             <h2 style={h2}>What are you noticing?</h2>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",marginBottom:18}}>{fmtFull(now)} Â· {fmtTime(now)}</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3D2B5C",marginBottom:18}}>{fmtFull(now)} · {fmtTime(now)}</p>
 
             <div style={{...card,marginBottom:20,background:RISK[riskLevel].bg,border:"2px solid "+RISK[riskLevel].color+"38"}}>
               <div className="score-grid" style={{display:"grid",gridTemplateColumns:"auto 1fr auto",gap:20,alignItems:"center"}}>
@@ -1377,7 +1379,7 @@ function AppMain({ session }) {
                       <div style={{width:18,height:18,borderRadius:4,border:"2px solid "+(sel?"#5B4B7A":"#C4B0E0"),
                         background:sel?"#5B4B7A":"transparent",flexShrink:0,
                         display:"flex",alignItems:"center",justifyContent:"center"}}>
-                        {sel && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>âœ“</span>}
+                        {sel && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>✓</span>}
                       </div>
                       {opt}
                     </button>
@@ -1448,13 +1450,13 @@ function AppMain({ session }) {
               <div style={{...card,marginBottom:18,background:"#EDE8F8",border:"1px solid #C4B0E0"}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                   <CheckCircle size={15} color="#7A8FA6"/>
-                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:"#7A8FA6",letterSpacing:"1px",textTransform:"uppercase"}}>Active Styles â€” Carrying Forward</span>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:"#7A8FA6",letterSpacing:"1px",textTransform:"uppercase"}}>Active Styles — Carrying Forward</span>
                 </div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                   {Object.entries(activeStyles).map(([key, s]) => (
                     <div key={key} style={{display:"flex",alignItems:"center",gap:6,background:"#fff",borderRadius:20,padding:"6px 12px",border:"1px solid #C4B0E0"}}>
                       <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#5B4B7A"}}>
-                        <strong>{s.value}</strong> Â· {s.freq} Â· since {s.setDate}
+                        <strong>{s.value}</strong> · {s.freq} · since {s.setDate}
                       </span>
                       <button onClick={()=>clearActiveStyle(key)}
                         style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",alignItems:"center",color:"#8878A8"}}>
@@ -1464,7 +1466,7 @@ function AppMain({ session }) {
                   ))}
                 </div>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A8FA6",marginTop:8,marginBottom:0}}>
-                  Press the Ã— to clear a style when you change it. Log a new one below.
+                  Press the × to clear a style when you change it. Log a new one below.
                 </p>
               </div>
             )}
@@ -1473,13 +1475,13 @@ function AppMain({ session }) {
             {ethnicIdentity.includes("Black or African American") && ethnicSaved && (
               <div style={{background:"rgba(123,94,167,.08)",borderRadius:12,padding:"14px 18px",marginBottom:16,borderLeft:"4px solid #7B5EA7"}}>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12.5,color:"#5B4B7A",lineHeight:1.6,margin:0,fontWeight:500}}>
-                  Based on your identity, we have highlighted the hair practices most commonly associated with CCCA and scarring alopecia in Black women â€” including tension styles, chemical treatments, and wig or extension use. All sections are still available below.
+                  Based on your identity, we have highlighted the hair practices most commonly associated with CCCA and scarring alopecia in Black women — including tension styles, chemical treatments, and wig or extension use. All sections are still available below.
                 </p>
               </div>
             )}
 
             {/* Hair practice form */}
-            {/* Dropdown sections: Tension, Chemical, Wigs â€” ordered by relevance */}
+            {/* Dropdown sections: Tension, Chemical, Wigs — ordered by relevance */}
             {(()=>{
               const ids = Array.isArray(ethnicIdentity) ? ethnicIdentity : [];
               const isBAAA = ids.includes("Black or African American");
@@ -1611,7 +1613,7 @@ function AppMain({ session }) {
               </button>
             </div>
 
-            {/* Protective Style Care â€” Black or African American only */}
+            {/* Protective Style Care — Black or African American only */}
             {ethnicIdentity.includes("Black or African American") && (
             <div style={{...card,marginBottom:12,borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
@@ -1655,7 +1657,7 @@ function AppMain({ session }) {
             </div>
             )}
 
-            {/* Heat Styling â€” adaptive multi-select */}
+            {/* Heat Styling — adaptive multi-select */}
             {(()=>{
               const showAll = ethnicIdentity.includes("I prefer not to say") || ethnicIdentity.length===0;
               const prominentHeat = showAll ? H_OPTS_ALL : (() => {
@@ -1716,7 +1718,7 @@ function AppMain({ session }) {
               );
             })()}
 
-            {/* Products Used on Scalp â€” adaptive multi-select */}
+            {/* Products Used on Scalp — adaptive multi-select */}
             {(()=>{
               const showAll = ethnicIdentity.includes("I prefer not to say") || ethnicIdentity.length===0;
               const prominentProducts = showAll ? P_OPTS_ALL : (() => {
@@ -1777,7 +1779,7 @@ function AppMain({ session }) {
               );
             })()}
 
-            {/* Cleansing Routine â€” adaptive multi-select */}
+            {/* Cleansing Routine — adaptive multi-select */}
             {(()=>{
               const showAll = ethnicIdentity.includes("I prefer not to say") || ethnicIdentity.length===0;
               const prominentCleansing = showAll ? CL_OPTS_ALL : (() => {
@@ -1879,7 +1881,7 @@ function AppMain({ session }) {
               <ChangeIndicator sectionKey="scalpCare"/>
             </div>
 
-            {/* Locs Maintenance â€” conditional */}
+            {/* Locs Maintenance — conditional */}
             {ethnicIdentity.includes("Black or African American") && (tension.includes("Locs") || tension.includes("Sisterlocks")) && (
             <div style={{...card,marginBottom:12,borderLeft:"4px solid #7B5EA7",background:"rgba(123,94,167,.03)"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
@@ -1922,7 +1924,7 @@ function AppMain({ session }) {
             </div>
             )}
 
-            {/* Moisturizing Routine â€” conditional */}
+            {/* Moisturizing Routine — conditional */}
             {(ethnicIdentity.includes("Black or African American") || ethnicIdentity.includes("Hispanic or Latina")) && (
             <div style={{...card,marginBottom:12,borderLeft:"4px solid #9B7FC0",background:"rgba(123,94,167,.03)"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
@@ -1971,7 +1973,7 @@ function AppMain({ session }) {
                 placeholder="Anything else about your hair care routine you want to remember? A new product you tried, something that irritated your scalp, a style you want to avoid. Write it here."/>
             </div>
 
-            {/* Save button â€” independent from symptoms */}
+            {/* Save button — independent from symptoms */}
             <div style={{display:"flex",gap:11,flexWrap:"wrap",marginBottom:24}}>
               <button onClick={saveHairLog} className="lift" style={{...gold,padding:"14px 28px",fontSize:15,flex:1}}>
                 Save Hair Practice Entry
@@ -1984,7 +1986,7 @@ function AppMain({ session }) {
               )}
             </div>
 
-            {/* Hair Practice History â€” standalone */}
+            {/* Hair Practice History — standalone */}
             {hairHistory.length === 0 && (
               <div style={{...card,textAlign:"center",padding:"40px 28px",marginBottom:20}}>
                 <Layers size={44} color="#C4B0E0" style={{margin:"0 auto 14px"}}/>
@@ -2007,7 +2009,7 @@ function AppMain({ session }) {
                     return (
                       <div key={e.id} style={{background:"#fff",borderRadius:12,padding:"14px 16px",border:"1px solid #DDD0F0"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:6}}>
-                          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:"#5B4B7A"}}>{e.date} Â· {e.time}</span>
+                          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:"#5B4B7A"}}>{e.date} · {e.time}</span>
                           {sameDay && (
                             <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,padding:"3px 10px",borderRadius:20,background:SC(Math.round(sameDay.avgScore))+"22",color:SC(Math.round(sameDay.avgScore)),fontWeight:700}}>
                               Symptom avg that day: {sameDay.avgScore}/5
@@ -2019,7 +2021,7 @@ function AppMain({ session }) {
                             .filter(([,v])=>v && v!=="None" && v!=="")
                             .map(([label,val,freq])=>(
                               <span key={label} style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,background:"#F0EAE2",padding:"4px 10px",borderRadius:20,color:"#3D2B5C"}}>
-                                <strong>{label}:</strong> {val}{freq ? " Â· "+freq : ""}
+                                <strong>{label}:</strong> {val}{freq ? " · "+freq : ""}
                               </span>
                             ))
                           }
@@ -2051,7 +2053,7 @@ function AppMain({ session }) {
               style={{...card,marginBottom:20,textAlign:"center",background:"#F4F0FA",border:"2px dashed #C4B0E0",cursor:"pointer",padding:"32px 20px"}}>
               <Camera size={36} color="#C4B0E0" style={{margin:"0 auto 11px"}}/>
               <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#5B4B7A",marginBottom:6}}>Upload Scalp Photos</h3>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8"}}>Click here to choose photos Â· JPG, PNG, HEIC Â· {fmtShort(now)} {fmtTime(now)}</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8"}}>Click here to choose photos · JPG, PNG, HEIC · {fmtShort(now)} {fmtTime(now)}</p>
             </div>
             {photos.length>0 && (
               <>
@@ -2067,7 +2069,7 @@ function AppMain({ session }) {
                         {/* Prominent timestamp overlay */}
                         <div style={{position:"absolute",bottom:0,left:0,right:0,background:"rgba(0,0,0,.72)",padding:"8px 12px"}}>
                           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#FFD700",fontWeight:700,margin:0,letterSpacing:"0.5px"}}>{p.date}</p>
-                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,.85)",margin:"2px 0 0"}}>{p.time} Â· Beyond the Hairlineâ„¢</p>
+                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,.85)",margin:"2px 0 0"}}>{p.time} · Beyond the Hairline™</p>
                         </div>
                       </div>
                       <div style={{padding:"14px 16px",display:"flex",flexDirection:"column",gap:12}}>
@@ -2099,7 +2101,7 @@ function AppMain({ session }) {
                                   <div style={{width:18,height:18,borderRadius:4,border:"2px solid "+(sel?"#5B4B7A":"#C4B0E0"),
                                     background:sel?"#5B4B7A":"transparent",flexShrink:0,
                                     display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                    {sel && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>âœ“</span>}
+                                    {sel && <span style={{color:"#fff",fontSize:12,lineHeight:1}}>✓</span>}
                                   </div>
                                   {t}
                                 </button>
@@ -2478,7 +2480,7 @@ function AppMain({ session }) {
               <div>
                 <span style={{...pill,background:"rgba(123,94,167,.1)",color:"#7B5EA7",marginBottom:12,display:"inline-flex"}}><BarChart2 size={10}/>&nbsp;Full Patient Record</span>
                 <h2 style={h2}>History Log</h2>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginTop:3}}>{history.length} saved {history.length===1?"entry":"entries"} Â· {fmtFull(now)}</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8878A8",marginTop:3}}>{history.length} saved {history.length===1?"entry":"entries"} · {fmtFull(now)}</p>
               </div>
               <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
                 <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#3D2B5C"}}>Filter:</span>
@@ -2578,7 +2580,7 @@ function AppMain({ session }) {
                           <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
                             {[["Style",e.hair.tension,e.hair.tensionFreq],["Chemical",e.hair.chemical,e.hair.chemicalFreq],["Wig",e.hair.wig,e.hair.wigFreq],["Heat",e.hair.heat,e.hair.heatFreq],["Products",e.hair.product,e.hair.productFreq]]
                               .filter(([,v])=>v && v!=="None" && v!=="").map(([k,v,f])=>(
-                              <span key={k} style={{...pill,background:"rgba(155,127,192,.15)",color:"#3D2B5C",border:"1px solid rgba(155,127,192,.3)"}}>{k}: {v}{f?" Â· "+f:""}</span>
+                              <span key={k} style={{...pill,background:"rgba(155,127,192,.15)",color:"#3D2B5C",border:"1px solid rgba(155,127,192,.3)"}}>{k}: {v}{f?" · "+f:""}</span>
                             ))}
                           </div>
                         </div>
@@ -2586,11 +2588,11 @@ function AppMain({ session }) {
                       {/* Show any hair practice entries logged separately on same day */}
                       {hairHistory.filter(h=>h.date===e.date).map(h=>(
                         <div key={h.id} style={{background:"#EDE8F8",borderRadius:10,padding:"10px 13px",border:"1px solid #C4B0E0"}}>
-                          <p style={{...lbl,marginBottom:5,color:"#7A8FA6"}}>Hair Practice Entry Â· {h.time}</p>
+                          <p style={{...lbl,marginBottom:5,color:"#7A8FA6"}}>Hair Practice Entry · {h.time}</p>
                           <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
                             {[["Style",h.tension,h.tensionFreq],["Chemical",h.chemical,h.chemicalFreq],["Wig",h.wig,h.wigFreq],["Heat",h.heat,h.heatFreq],["Products",h.product,h.productFreq]]
                               .filter(([,v])=>v && v!=="None" && v!=="").map(([k,v,f])=>(
-                              <span key={k} style={{...pill,background:"rgba(122,143,166,.15)",color:"#7A8FA6",border:"1px solid rgba(74,103,65,.2)"}}>{k}: {v}{f?" Â· "+f:""}</span>
+                              <span key={k} style={{...pill,background:"rgba(122,143,166,.15)",color:"#7A8FA6",border:"1px solid rgba(74,103,65,.2)"}}>{k}: {v}{f?" · "+f:""}</span>
                             ))}
                             {h.hairOther && <span style={{...pill,background:"rgba(122,143,166,.15)",color:"#7A8FA6",border:"1px solid rgba(74,103,65,.2)"}}>{h.hairOther}</span>}
                           </div>
@@ -2619,7 +2621,7 @@ function AppMain({ session }) {
           <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C4B0E0",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16}}>Scarring Alopecia Tracker</div>
           <div style={{width:60,height:1,background:"rgba(201,168,130,.2)",margin:"0 auto 16px"}}/>
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(201,168,130,.5)",maxWidth:640,margin:"0 auto 8px",lineHeight:1.7}}>
-            Clinical references: Scarring Alopecia Foundation (scarringalopecia.org), Mayo Clinic, Cleveland Clinic, JAMA Dermatology. For educational and self-tracking purposes only â€” not a substitute for medical care.
+            Clinical references: Scarring Alopecia Foundation (scarringalopecia.org), Mayo Clinic, Cleveland Clinic, JAMA Dermatology. For educational and self-tracking purposes only — not a substitute for medical care.
           </p>
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"rgba(201,168,130,.3)",marginTop:4}}>Always consult a board-certified dermatologist specializing in skin of color.</p>
         </div>
@@ -2627,5 +2629,3 @@ function AppMain({ session }) {
     </div>
   );
 }
-
-
