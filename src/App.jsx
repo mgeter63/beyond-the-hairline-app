@@ -390,7 +390,6 @@ function AuthScreen({ onAuth }) {
       } else {
         setError(err.message || "Something went wrong. Please try again.");
       }
-    }
     setLoading(false);
   };
 
@@ -528,7 +527,6 @@ export default function App() {
         </div>
       </div>
     );
-  }
   }
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -949,7 +947,6 @@ function AppMain({ session }) {
           } else {
             console.warn("Storage upload failed, using base64 fallback:", upErr);
           }
-        }
 
         let dbErr;
         ({ error: dbErr } = await supabase.from("photo_logs").insert({
