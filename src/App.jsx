@@ -1,6 +1,4 @@
 import jsPDF from "jspdf";
-import PrivacyPolicy from "./PrivacyPolicy";
-import TermsOfService from "./TermsOfService";
 import { supabase } from "./supabase";
 
 import { useState, useEffect, useRef } from "react";
@@ -350,8 +348,6 @@ function ResetPasswordForm({ onDone }) {
 
 function AuthScreen({ onAuth }) {
   const [mode, setMode] = useState("login");
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -505,10 +501,9 @@ function AuthScreen({ onAuth }) {
             </button>
           </p>
           <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:16}}>
-            <button onClick={()=>setShowPrivacy(true)} style={{background:"none",border:"none",color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,cursor:"pointer",padding:0,textDecoration:"underline"}}>Privacy Policy</button>
-            <button onClick={()=>setShowTerms(true)} style={{background:"none",border:"none",color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,cursor:"pointer",padding:0,textDecoration:"underline"}}>Terms of Service</button>
+            <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" style={{color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,textDecoration:"underline"}}>Privacy Policy</a>
+            <a href="/terms-of-service.html" target="_blank" rel="noopener noreferrer" style={{color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,textDecoration:"underline"}}>Terms of Service</a>
           </div>
-          {(showPrivacy||showTerms)&&(<div style={{position:"fixed",inset:0,background:"rgba(45,27,92,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>{setShowPrivacy(false);setShowTerms(false)}}><div style={{background:"#fff",borderRadius:18,maxWidth:600,width:"100%",maxHeight:"80vh",overflow:"auto",padding:"32px 28px",position:"relative"}} onClick={e=>e.stopPropagation()}><button onClick={()=>{setShowPrivacy(false);setShowTerms(false)}} style={{position:"absolute",top:12,right:14,background:"none",border:"none",cursor:"pointer",fontSize:20,color:"#5B4B7A"}}>✕</button>{showPrivacy?<PrivacyPolicy/>:<TermsOfService/>}</div></div>)}
           <img src={LOGO} alt="Beyond the Hairline" style={{width:68,height:68,objectFit:"contain",margin:"14px auto 0",display:"block"}} />
         </div>
       </div>
@@ -582,8 +577,6 @@ export default function App() {
 function AppMain({ session }) {
   const now = useTick();
   const [tab, setTab] = useState("home");
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
     const created = new Date(session.user?.created_at || 0).getTime();
     const lastSign = new Date(session.user?.last_sign_in_at || 0).getTime();
@@ -2640,10 +2633,9 @@ function AppMain({ session }) {
           </p>
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"rgba(201,168,130,.3)",marginTop:4}}>Always consult a board-certified dermatologist specializing in skin of color.</p>
           <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:12}}>
-            <button onClick={()=>setShowPrivacy(true)} style={{background:"none",border:"none",color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,cursor:"pointer",padding:0,textDecoration:"underline"}}>Privacy Policy</button>
-            <button onClick={()=>setShowTerms(true)} style={{background:"none",border:"none",color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,cursor:"pointer",padding:0,textDecoration:"underline"}}>Terms of Service</button>
+            <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" style={{color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,textDecoration:"underline"}}>Privacy Policy</a>
+            <a href="/terms-of-service.html" target="_blank" rel="noopener noreferrer" style={{color:"#D4AF37",fontFamily:"'DM Sans',sans-serif",fontSize:11,textDecoration:"underline"}}>Terms of Service</a>
           </div>
-          {(showPrivacy||showTerms)&&(<div style={{position:"fixed",inset:0,background:"rgba(45,27,92,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>{setShowPrivacy(false);setShowTerms(false)}}><div style={{background:"#fff",borderRadius:18,maxWidth:600,width:"100%",maxHeight:"80vh",overflow:"auto",padding:"32px 28px",position:"relative"}} onClick={e=>e.stopPropagation()}><button onClick={()=>{setShowPrivacy(false);setShowTerms(false)}} style={{position:"absolute",top:12,right:14,background:"none",border:"none",cursor:"pointer",fontSize:20,color:"#5B4B7A"}}>✕</button>{showPrivacy?<PrivacyPolicy/>:<TermsOfService/>}</div></div>)}
         </div>
       </footer>
     </div>
