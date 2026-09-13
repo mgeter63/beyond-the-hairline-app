@@ -17,6 +17,8 @@ A patient registry for scarring alopecia, including CCCA (Central Centrifugal Ci
 
 The registry is maintained by Beyond the Hairline LLC in partnership with Chat Chew and Do Empowerment Women Group (CCDEW), a Mississippi nonprofit. Its purpose is to document, in one place, who scarring alopecia affects, how long diagnosis takes, how it shapes daily life, and what stands between people and care.
 
+Beyond the Hairline began as a tool for women living with CCCA. It has grown into a registry for everyone scarring alopecia touches: all genders, all races and ethnicities, and all seven conditions listed above. The intake reflects that. Gender and identity questions offer a full range of answers, and the hair care and product language adapts to the person answering.
+
 ### Track It
 
 A free, private 30-day scalp journal. A person rates ten common scalp and hair symptoms each day, taps what they did with their hair, adds a note, and saves. Everything stays in the browser on their own device. At any point they can print the journal or download it to share with a dermatologist.
@@ -147,7 +149,7 @@ The scarring alopecia patient registry.
 You create an account with your email, a mobile number, and the name you want to be called. You read and agree to how your de-identified answers may be used. Then four short steps: who you are, your condition, your symptoms and how they affect daily life, and your care journey. That is it. No photos, no daily logging, no ongoing commitment.
 
 **Who it is for and the one problem it solves**
-Adults living with, being evaluated for, or quietly researching scarring alopecia, especially Black women navigating CCCA. The problem: this condition has no national dataset. Nobody can say how many people have it, how long they wait, or what it costs them, so it stays under-researched and under-treated. The registry is that dataset, built one voice at a time.
+Adults of every race and gender who are living with, being evaluated for, or quietly researching scarring alopecia. That includes the Black women and men CCCA affects most, and everyone this condition has left uncounted. The problem: this condition has no national dataset. Nobody can say how many people have it, how long they wait, or what it costs them, so it stays under-researched and under-treated. The registry is that dataset, built one voice at a time.
 
 **Five short social captions**
 1. Scarring alopecia has no national patient registry. Until now. Add your voice in ten minutes, once, and get Track It free.
@@ -157,10 +159,10 @@ Adults living with, being evaluated for, or quietly researching scarring alopeci
 5. Not diagnosed yet? You still belong here. The registry is for everyone who knows something is wrong with their scalp.
 
 **Eight hashtags**
-#IHaveThisToo #BeyondTheHairline #ScarringAlopecia #CCCA #PatientRegistry #BlackWomensHealth #AlopeciaAwareness #SkinOfColorDermatology
+#IHaveThisToo #BeyondTheHairline #ScarringAlopecia #CCCA #PatientRegistry #HairLossCommunity #AlopeciaAwareness #SkinOfColorDermatology
 
 **Press blurb (two sentences)**
-I Have This Too is the Beyond the Hairline patient registry for scarring alopecia, a group of inflammatory conditions that cause permanent hair loss and disproportionately affect Black women. Maintained by Beyond the Hairline LLC with the Jackson, Mississippi nonprofit Chat Chew and Do Empowerment Women Group, the registry collects a one-time, consented intake on diagnosis, symptoms, quality of life, and barriers to care, and gives every participant the free Track It scalp journal.
+I Have This Too is the Beyond the Hairline patient registry for scarring alopecia, a group of inflammatory conditions that cause permanent hair loss in people of every race and gender and fall hardest on Black women and men. Maintained by Beyond the Hairline LLC with the Jackson, Mississippi nonprofit Chat Chew and Do Empowerment Women Group, the registry collects a one-time, consented intake on diagnosis, symptoms, quality of life, and barriers to care, and gives every participant the free Track It scalp journal.
 
 ### E2. Track It (free 30-day scalp journal)
 
@@ -189,7 +191,7 @@ Registry participants who want to keep watching their scalp after the one-time i
 5. Completed the registry? Your free journal is waiting.
 
 **Eight hashtags**
-#TrackIt #ScalpJournal #HairLossAwareness #ScarringAlopecia #CCCAAwareness #KnowYourScalp #BlackWomensHealth #BeyondTheHairline
+#TrackIt #ScalpJournal #HairLossAwareness #ScarringAlopecia #CCCAAwareness #KnowYourScalp #HairLossCommunity #BeyondTheHairline
 
 **Press blurb (two sentences)**
 Track It is a free, private 30-day scalp journal from Beyond the Hairline that lets people rate ten scalp and hair symptoms each day, log what they did to their hair, and print or download the result for a dermatologist. It is given to everyone who completes the I Have This Too patient registry, and nothing entered in the journal ever leaves the user's own device.
