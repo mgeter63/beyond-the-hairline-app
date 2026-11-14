@@ -63,3 +63,10 @@ Items 4 to 14 are FROM DR. BOLER'S SLIDES (CCCA, AKN, traction alopecia). Items 
 1. Wig reveal: a made-up woman in business casual comes home after work, takes off her wig, looks tired and relieved. Caption: "Tired of covering it up? Get your scalp checked by a dermatologist. Early answers can stop more hair loss."
 2. Cartoon flames: a made-up woman scratches her head and cartoon flames pop up from her scalp. Caption: "Tired of the burning and itching?" End: "Burning and itching can be early signs. See a dermatologist." The joke stays on the symptom, never on her or on hair loss.
 Status: approved to start. Credit cost to be confirmed with Mary before generating.
+
+## Music (added Nov 14)
+
+- Every video gets soft background music, mixed low (about -18 LUFS) so the text stays the focus.
+- Music is original, composed in code for Beyond the Hairline (source/compose_music.py). No samples, no outside tracks, no licensing risk.
+- Video 1: F major, music-box bells. Video 2: G major, light walking rhythm. Video 3: D major, slow and warm.
+- Files with music: videos/with_music/
