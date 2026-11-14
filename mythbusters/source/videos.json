@@ -1,0 +1,29 @@
+{
+ "v1": {
+  "bg": "bg_kitten.mp4",
+  "accent": "#FFD23F",
+  "myth": "“It’s just| breakage.”",
+  "fact1": "Breakage happens above the scalp. **Alopecia begins below it.**",
+  "fact2": "Hair is replaceable. **Hair follicles are not.**",
+  "strike_at": 2.2,
+  "top": 1020
+ },
+ "v2": {
+  "bg": "bg_gingercat.mp4",
+  "accent": "#7CF0C5",
+  "myth": "“It’ll grow back| if you stop| relaxing your hair.”",
+  "fact1": "**Scarred follicles do not regrow** from scar tissue.",
+  "fact2": "Early treatment can help **stop or slow more loss.**",
+  "strike_at": 3.0,
+  "top": 250
+ },
+ "v3": {
+  "bg": "bg_dog.mp4",
+  "accent": "#9AD8FF",
+  "myth": "“If it doesn’t itch,| it’s not active.”",
+  "fact1": "CCCA can be silent. Many people have **no burning, itching, or pain.**",
+  "fact2": "**Silence does not equal safety.**",
+  "strike_at": 2.9,
+  "top": 250
+ }
+}
