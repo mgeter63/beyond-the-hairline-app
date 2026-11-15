@@ -79,3 +79,8 @@ Status: approved to start. Credit cost to be confirmed with Mary before generati
 | B: Burning and itching | Kling 3.0 Turbo 8s | 12 | Subtitle box style, key phrase in orange | videos/ai/AI_B_BurningAndItching.mp4 | Awaiting review |
 
 Both carry a small "AI-generated" label (Meta asks for realistic AI content to be labeled). Music is original (compose_music.py, tracks A and B). Balance after: 17 credits.
+
+## Slide use rule (Mary, Nov 15)
+
+- Use the INFORMATION from Dr. Boler's slides, never the slides themselves. No slide images, photos, or screenshots in any post.
+- Reference images of the slides live in slide_refs/ for internal fact-checking only (kept out of GitHub).
