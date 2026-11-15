@@ -71,7 +71,7 @@ Status: approved to start. Credit cost to be confirmed with Mary before generati
 - Video 1: F major, music-box bells. Video 2: G major, light walking rhythm. Video 3: D major, slow and warm.
 - Files with music: videos/with_music/
 
-## AI videos (Higgsfield), made Nov 15, awaiting Mary's approval
+## AI videos (Higgsfield), made Nov 15. STOPPED by Mary Nov 15: not turning out right, do not use, no more AI videos
 
 | Video | Model | Credits | Captions | File | Status |
 |---|---|---|---|---|---|
