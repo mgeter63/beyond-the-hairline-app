@@ -25,5 +25,14 @@
   "fact2": "**Silence does not equal safety.**",
   "strike_at": 2.9,
   "top": 250
+ },
+ "v4": {
+  "bg": "bg_reeds.mp4",
+  "accent": "#FFB86B",
+  "top": 250,
+  "strike_at": 2.6,
+  "myth": "“Braids alone| cause CCCA.”",
+  "fact1": "No single factor explains CCCA. **Tight braids can make scalp inflammation worse.**",
+  "fact2": "And years of tight styles can cause **traction alopecia.**"
  }
 }

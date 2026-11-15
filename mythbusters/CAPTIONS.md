@@ -58,3 +58,21 @@ Learn more at beyondthehairline.com
 This is for education, not medical advice.
 
 #BeyondTheHairline #CCCA #scarringalopecia #alopecia #scalphealth #hairlossawareness #alopeciaawareness #blackwomenhairloss #hairlosssupport #scalphealthtraining #barbereducation
+
+## Video 4 (date to be set by Mary): "Braids alone cause CCCA."
+
+Myth: "Braids alone cause CCCA."
+Fact: No single factor explains CCCA. Tight braids can make scalp inflammation worse.
+
+CCCA can show up with braids, relaxers, wigs, natural hair, or no chemical history at all. Tension is still not harmless: years of tight styles can cause traction alopecia. If a style hurts, it's too tight, and scalp changes deserve a closer look.
+
+Barbers, cosmetologists, hairstylists, braiders, loctitians, and twist specialists: you see the scalp up close. Speak up early.
+
+Scarring alopecia affects people of all races and ethnicities and is especially common among African American women. CCCA is the most common type in Black women.
+
+Recognize. Respond. Refer.
+Learn more at beyondthehairline.com
+
+This is for education, not medical advice.
+
+#BeyondTheHairline #CCCA #CCCAalopecia #tractionalopecia #scarringalopecia #naturalhairhealth #scalphealth #blackhairloss #alopeciaawareness #hairlossawareness #beautyprofessionaleducation

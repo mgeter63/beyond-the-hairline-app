@@ -12,6 +12,7 @@ Source label: all three are FROM DR. BOLER'S SLIDES.
 | 1 | "It's just breakage." | Breakage happens above the scalp. Alopecia begins below it. / Hair is replaceable. Hair follicles are not. | Slide 24 (myth), Slide 5 and Slide 3 (facts) | White kitten, Pexels video 20750166 by Asif khan | Bold block text, key phrase highlighted yellow | MB01_JustBreakage.mp4 | Approved. Post Mon Nov 16, noon Central |
 | 2 | "It'll grow back if you stop relaxing your hair." | Scarred follicles do not regrow from scar tissue. / Early treatment can help stop or slow more loss. | Slide 24 (myth, reworded from "if she stops relaxing" to speak to the viewer), Slide 31 ("Scarred / destroyed follicles do not regrow from scar tissue"), Slide 9 ("Treating early can protect follicles that are inflamed but not yet scarred") | Ginger cat crossing a street, Pexels video 14494347 by Bayram Yalcin | Bold block text, key phrase highlighted mint | MB02_GrowBackIfStopRelaxing.mp4 | Approved. Post Wed Nov 18, noon Central |
 | 3 | "If it doesn't itch, it's not active." | CCCA can be silent. Many people have no burning, itching, or pain. / Silence does not equal safety. | Slide 24 (myth), Slide 20 (facts) | Yellow Lab walking toward camera, Pexels video 8746940 by Roman Odintsov (slowed to 0.6x) | Bold block text, key phrase highlighted blue | MB03_NoItchNotActive.mp4 | Approved. Post Fri Nov 20, noon Central |
+| 4 | "Braids alone cause CCCA." | No single factor explains CCCA. Tight braids can make scalp inflammation worse. / And years of tight styles can cause traction alopecia. | FROM DR. BOLER'S SLIDES: Misconceptions (PDF p.86), What causes CCCA (p.65), Hair practices: accelerators (slide 16), Traction vs CCCA (p.100) | Golden reeds in wind, Pexels video 856183 (Pixabay contributor), cropped from 4K | Word-by-word reveal in block boxes, key phrase orange | with_music/MB04_BraidsAloneCauseCCCA_music.mp4 | Draft, awaiting approval |
 
 ## Queue (next myths, in order)
 
@@ -19,7 +20,7 @@ Items 4 to 14 are FROM DR. BOLER'S SLIDES (CCCA, AKN, traction alopecia). Items 
 
 | Next | Myth | Fact from the slides | Slide source | Note |
 |------|------|----------------------|--------------|------|
-| 4 | "You caused it with your braids." | No single factor explains all cases. CCCA can occur with relaxed hair, natural hair, braids, wigs, or no major chemical history. | Slides 24, 12, 14 | Close to Master Log Batch 2 ("her own fault") and the Nov 14 carousel, so keep the angle on braids specifically |
+| 4 (MADE, see below) | "Braids alone cause CCCA." | No single factor explains all cases. CCCA can occur with relaxed hair, natural hair, braids, wigs, or no major chemical history. | Slides 24, 12, 14 | Close to Master Log Batch 2 ("her own fault") and the Nov 14 carousel, so keep the angle on braids specifically |
 | 5 | "Relaxers cause all CCCA." | Relaxers are not proven to be the sole cause of CCCA. | Slide 18 | |
 | 6 | "Natural hair protects you from CCCA." | Not every patient with natural hair avoids it. | Slide 12 | |
 | 7 | "Traction alopecia is always reversible." | Early traction can be reversible. Late traction can also scar. | Slide 8, Slide 33, Pre-test Q2 | Male-inclusive (locs, braids, twists) |

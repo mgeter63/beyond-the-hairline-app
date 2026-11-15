@@ -14,7 +14,9 @@ def words(s, cls):  # word spans; **...** wraps a key phrase span
         if tok.startswith('**'): tok=tok[2:]; pre=f'<span class="key {cls}k">'; inkey=True
         if tok.endswith('**'): tok=tok[:-2]; post='</span>'; inkey=False
         br='<br>' if tok.endswith('|') else ''; tok=tok.rstrip('|')
-        o.append(f'{pre}<span class="w {cls}">{html.escape(tok)}</span>{post}{br}')
+        sp=' ' if style=='revealblock' and not br else ''
+        o.append(f'{pre}<span class="w {cls}">{html.escape(tok)}{sp}</span>{post}{br}')
+    if style=='revealblock': return '<span class="bx">'+''.join(o)+'</span>'
     body=' '.join(o[:-1])+('&nbsp;' if len(o)>1 and not o[-2].endswith('<br>') else ' ')+o[-1]
     return '<span class="bx">'+body+'</span>'
 myth = words(V['myth'], 'mw'); f1 = words(V['fact1'], 'f1w'); f2 = words(V['fact2'], 'f2w')
@@ -38,6 +40,12 @@ body{{width:1080px;height:1920px;overflow:hidden;background:#000;font-family:'In
 .s-block .txt .bx{{background:#fff;color:#111;padding:2px 18px;-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:6px}}
 .s-block .txt .key{{background:{acc};padding:2px 6px;-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:4px}}
 .s-block .myth .bx{{background:#111;color:#fff}}
+/* STYLE: revealblock */
+.s-revealblock .txt{{line-height:1.24}}
+.s-revealblock .txt .w{{background:#fff;color:#111;padding:3px 0;box-shadow:10px 0 0 #fff,-10px 0 0 #fff;-webkit-box-decoration-break:clone;box-decoration-break:clone}}
+.s-revealblock .txt .bx{{padding-left:10px}}
+.s-revealblock .txt .key .w{{background:{acc};box-shadow:10px 0 0 {acc},-10px 0 0 {acc}}}
+.s-revealblock .myth .w{{background:#111;color:#fff;box-shadow:10px 0 0 #111,-10px 0 0 #111}}
 /* STYLE: reveal */
 .s-reveal .txt{{text-shadow:0 0 40px rgba(0,0,0,.8),0 4px 18px rgba(0,0,0,.8),0 2px 3px rgba(0,0,0,.9)}}
 .s-reveal .txt .key{{color:{acc}}}
@@ -71,6 +79,7 @@ const tl=gsap.timeline({{paused:true}});
 tl.fromTo("#bg",{{scale:1.0}},{{scale:1.08,duration:{T},ease:"none"}},0);
 function inWords(sel,start,stagger){{
   const ws=document.querySelectorAll(sel);
+  if(S==="revealblock"){{ tl.fromTo(ws,{{opacity:0}},{{opacity:1,duration:.12,stagger:stagger,ease:"none"}},start); return start+ws.length*stagger+.15; }}
   if(S==="reveal"){{ tl.fromTo(ws,{{opacity:0,y:30}},{{opacity:1,y:0,duration:.22,stagger:stagger,ease:"power2.out"}},start); return start+ws.length*stagger+.22; }}
   const box=ws[0].closest(".txt"); tl.fromTo(box,{{opacity:0,y:30}},{{opacity:1,y:0,duration:.4,ease:"power3.out"}},start); return start+.45;
 }}
