@@ -1,7 +1,7 @@
 # Original soft background music, synthesized from scratch (no samples).
 import numpy as np, soundfile as sf, sys
 from scipy.signal import fftconvolve, butter, sosfilt
-SR=48000; T=14.0; N=int(SR*T)
+SR=48000; import os; T=float(os.environ.get('MT','14')); N=int(SR*T)
 rng=np.random.default_rng(7)
 def hz(m): return 440*2**((m-69)/12)
 def env(n, a, d):  # attack seconds, exponential decay time constant
@@ -30,6 +30,10 @@ P={ # chords as midi notes, melody as (beat, midi)
            mel=[(0,72),(1.5,74),(3,77),(4,76),(6,72),(8,74),(9.5,77),(11,79),(12,77),(14,72)], lead=bell),
  'v2':dict(bpm=80, prog=[[55,59,62,66],[52,55,59,62],[48,52,55,59],[50,54,57,59]], bass=[43,40,36,38],
            mel=[(0.5,74),(1,76),(2,79),(4.5,78),(5,76),(6,74),(8.5,74),(9,76),(10,79),(12.5,81),(13,79),(14,76)], lead=ep),
+ 'A':dict(bpm=64, prog=[[51,55,58,62],[48,51,55,58],[44,48,51,55],[46,50,53,55]], bass=[39,36,32,34],
+           mel=[(0,70),(2,72),(3,74),(4,75),(7,74),(8,72),(10,70),(12,67)], lead=ep),
+ 'B':dict(bpm=96, prog=[[48,52,55,59],[45,48,52,55],[41,45,48,52],[43,47,50,53]], bass=[36,33,29,31],
+           mel=[(0,72),(0.5,74),(1,76),(2,79),(3,76),(4,74),(4.5,72),(5,74),(6,76),(8,79),(8.5,81),(9,79),(10,76),(12,74),(12.5,72),(13,74),(14,72)], lead=bell),
  'v3':dict(bpm=68, prog=[[50,54,57,61],[47,50,54,57],[43,47,50,54],[45,49,52,54]], bass=[38,35,31,33],
            mel=[(0,73),(2,74),(3,76),(4,78),(7,76),(8,74),(10,73),(11,71),(12,69)], lead=bell),
 }
@@ -60,5 +64,6 @@ def make(key):
     mix/=np.abs(mix).max()+1e-9; mix*=0.8
     st=np.stack([mix, np.roll(mix,int(0.012*SR))],1)  # slight stereo width
     sf.write(f'music_{key}.wav', st, SR)
-for k in P: make(k)
+import sys
+for k in (sys.argv[1:] or P): make(k)
 print('ok')

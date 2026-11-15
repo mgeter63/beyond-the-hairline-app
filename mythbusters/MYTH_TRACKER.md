@@ -70,3 +70,12 @@ Status: approved to start. Credit cost to be confirmed with Mary before generati
 - Music is original, composed in code for Beyond the Hairline (source/compose_music.py). No samples, no outside tracks, no licensing risk.
 - Video 1: F major, music-box bells. Video 2: G major, light walking rhythm. Video 3: D major, slow and warm.
 - Files with music: videos/with_music/
+
+## AI videos (Higgsfield), made Nov 15, awaiting Mary's approval
+
+| Video | Model | Credits | Captions | File | Status |
+|---|---|---|---|---|---|
+| A: Tired of covering it up | Start frame GPT Image 2.6 (0.25) + Minimax Hailuo 6s (6) | 6.25 | Subtitle box style, key phrase in gold | videos/ai/AI_A_TiredOfCoveringItUp.mp4 | Awaiting review. Known glitch: shoulder bag morphs into a wig during removal. Redo option: Hailuo 10s, 11 credits |
+| B: Burning and itching | Kling 3.0 Turbo 8s | 12 | Subtitle box style, key phrase in orange | videos/ai/AI_B_BurningAndItching.mp4 | Awaiting review |
+
+Both carry a small "AI-generated" label (Meta asks for realistic AI content to be labeled). Music is original (compose_music.py, tracks A and B). Balance after: 17 credits.
