@@ -85,3 +85,10 @@ Both carry a small "AI-generated" label (Meta asks for realistic AI content to b
 
 - Use the INFORMATION from Dr. Boler's slides, never the slides themselves. No slide images, photos, or screenshots in any post.
 - Reference images of the slides live in slide_refs/ for internal fact-checking only (kept out of GitHub).
+
+## Text reels with Mary on camera (new format, Nov 16)
+
+- Demo: videos/reels/Reel_Demo_YourScalpTalks.mp4 (12s). Built from Mary's existing interview footage.
+- Effects: video-through-letters opener "YOUR SCALP TALKS.", giant word "EARLY" behind Mary (person cutout), pop-in captions "Early answers can stop or slow more hair loss.", end card, original music.
+- Person cutout: MediaPipe selfie segmentation model (from npm @mediapipe/selfie_segmentation), run locally.
+- Filming guide for new clips: FILMING_GUIDE.md

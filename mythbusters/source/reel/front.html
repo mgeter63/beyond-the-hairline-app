@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box} html,body{background:transparent;width:1080px;height:1920px;overflow:hidden;font-family:'Inter',sans-serif}
+#root{position:relative;width:1080px;height:1920px}
+#ko{position:absolute;inset:0}
+.cap{position:absolute;left:60px;right:60px;top:1430px;text-align:center}
+.w{display:inline-block;font-weight:900;font-size:84px;color:#fff;background:#111;padding:4px 18px;margin:6px 4px;border-radius:10px;opacity:0}
+.w.k{background:#F2C230;color:#111}
+#dim{position:absolute;inset:0;background:rgba(40,12,38,.86);opacity:0}
+.end{position:absolute;left:84px;right:84px;top:560px;color:#fff;opacity:0}
+.end .rrr{font-weight:900;font-size:124px;line-height:1.04;letter-spacing:-2px}.end .rrr span{display:block}.end .rrr span:nth-child(2){color:#F2C230}
+.end .url{margin-top:64px;font-weight:800;font-size:56px}
+.end .disc{margin-top:300px;font-weight:500;font-size:32px;color:rgba(255,255,255,.75)}
+</style></head><body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-duration="12" data-fps="30">
+<svg id="ko" width="1080" height="1920" viewBox="0 0 1080 1920">
+ <defs><mask id="m"><rect width="1080" height="1920" fill="white"/>
+  <text x="540" y="760" text-anchor="middle" font-family="Inter" font-weight="900" font-size="300" letter-spacing="-10" fill="black">YOUR</text>
+  <text x="540" y="1040" text-anchor="middle" font-family="Inter" font-weight="900" font-size="300" letter-spacing="-10" fill="black">SCALP</text>
+  <text x="540" y="1320" text-anchor="middle" font-family="Inter" font-weight="900" font-size="300" letter-spacing="-10" fill="black">TALKS.</text>
+ </mask></defs>
+ <rect id="plate" width="1080" height="1920" fill="#8A5A44" mask="url(#m)"/>
+</svg>
+<div class="cap" id="cap"><span class="w">Early</span><span class="w">answers</span><span class="w">can</span><br><span class="w k">stop or slow</span><br><span class="w">more</span><span class="w">hair</span><span class="w">loss.</span></div>
+<div id="dim"></div>
+<div class="end" id="end"><div class="rrr"><span>Recognize.</span><span>Respond.</span><span>Refer.</span></div>
+<div class="url">Learn more at beyondthehairline.com</div><div class="disc">This is for education, not medical advice.</div></div>
+<script src="gsap.min.js"></script><script>
+const tl=gsap.timeline({paused:true});
+// knockout title: zoom out then plate dissolves to reveal full video
+tl.fromTo("#ko",{scale:1.35,transformOrigin:"50% 50%"},{scale:1,duration:1.6,ease:"power2.out"},0);
+tl.to("#ko",{opacity:0,duration:.45,ease:"power1.in"},1.9);
+// pop-in captions word by word
+document.querySelectorAll('.w').forEach((w,i)=>tl.fromTo(w,{opacity:0,scale:.6,y:20},{opacity:1,scale:1,y:0,duration:.22,ease:"back.out(2.4)"},3.2+i*.28));
+tl.to("#cap",{opacity:0,duration:.3},7.7);
+tl.to("#dim",{opacity:1,duration:.5},8.0);
+tl.fromTo("#end",{opacity:0,y:30},{opacity:1,y:0,duration:.5,ease:"power3.out"},8.2);
+tl.fromTo("#end .rrr span",{opacity:0,x:-30},{opacity:1,x:0,duration:.3,stagger:.25},8.2);
+window.__timelines={root:tl};
+</script></div></body></html>
