@@ -59,7 +59,7 @@ This is for education, not medical advice.
 
 #BeyondTheHairline #CCCA #scarringalopecia #alopecia #scalphealth #hairlossawareness #alopeciaawareness #blackwomenhairloss #hairlosssupport #scalphealthtraining #barbereducation
 
-## Video 4 (date to be set by Mary): "Braids alone cause CCCA."
+## Video 4 (Mon Nov 23, noon Central, proposed): "Braids alone cause CCCA."
 
 Myth: "Braids alone cause CCCA."
 Fact: No single factor explains CCCA. Tight braids can make scalp inflammation worse.
