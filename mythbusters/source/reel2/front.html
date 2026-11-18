@@ -1,0 +1,78 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box} html,body{background:transparent;width:1080px;height:1920px;overflow:hidden;font-family:'Inter',sans-serif}
+#root{position:relative;width:1080px;height:1920px}
+/* 1 kinetic hook */
+#hookdim{position:absolute;inset:0;background:rgba(0,0,0,.35);opacity:0}
+.hook{position:absolute;left:0;right:0;text-align:center;font-weight:900;color:#fff;letter-spacing:-4px;line-height:1;opacity:0;text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#h1{top:560px;font-size:150px}#h2{top:720px;font-size:190px;color:#F2C230}#h3{top:920px;font-size:150px}#h4{top:1080px;font-size:190px}
+/* 2 comment drop */
+.cmt{position:absolute;left:70px;right:70px;top:300px;background:#fff;border-radius:34px;padding:34px 38px;box-shadow:0 24px 60px rgba(0,0,0,.35);opacity:0}
+.cmt .who{display:flex;align-items:center;gap:20px;margin-bottom:18px}
+.cmt .av{width:76px;height:76px;border-radius:50%;background:#4A1A46;color:#F2C230;font-weight:900;font-size:38px;display:flex;align-items:center;justify-content:center}
+.cmt .nm{font-weight:800;font-size:34px;color:#111}.cmt .sub{font-weight:500;font-size:26px;color:#777}
+.cmt .q{font-weight:800;font-size:60px;line-height:1.15;color:#111}
+/* 3 icon strike */
+.strike{position:absolute;left:70px;right:70px;top:300px;text-align:center}
+.tag{display:inline-block;font-weight:900;font-size:38px;letter-spacing:6px;padding:10px 26px;border-radius:999px;margin-bottom:26px;opacity:0}
+#tm{background:#FF5A4E;color:#fff}#tf{background:#F2C230;color:#111}
+.box{position:relative;display:inline-block;font-weight:900;font-size:82px;line-height:1.12;padding:14px 26px;border-radius:12px;opacity:0}
+#bm{background:#111;color:#fff}#bf{background:#fff;color:#111}
+#line{position:absolute;left:12px;top:50%;height:14px;background:#FF5A4E;border-radius:7px;width:0}
+.tagwrap{position:relative;height:90px}
+.tagwrap .tag{position:absolute;left:50%;transform:translateX(-50%)}
+.boxwrap{position:relative;min-height:220px}
+.boxwrap .box{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap}
+/* 4 caption under giant word */
+.cap{position:absolute;left:60px;right:60px;top:1440px;text-align:center}
+.w{display:inline-block;font-weight:900;font-size:60px;color:#fff;background:#111;padding:4px 16px;margin:6px 4px;border-radius:10px;opacity:0}
+.w.k{background:#F2C230;color:#111}
+/* 5 sketch end */
+#dim{position:absolute;inset:0;background:rgba(40,12,38,.88);opacity:0}
+#sk{position:absolute;left:0;top:430px}
+.sk text{font-family:Inter;font-weight:900;font-size:150px;letter-spacing:-3px;fill:transparent;stroke:#fff;stroke-width:3}
+.sk text.g{stroke:#F2C230}
+.endtxt{position:absolute;left:84px;right:84px;top:1080px;color:#fff;opacity:0}
+.url{font-weight:800;font-size:56px}.disc{margin-top:40px;font-weight:500;font-size:32px;color:rgba(255,255,255,.75)}
+</style></head><body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-duration="15.5" data-fps="30">
+<div id="hookdim"></div>
+<div class="hook" id="h1">YOUR</div><div class="hook" id="h2">STYLIST</div><div class="hook" id="h3">SEES IT</div><div class="hook" id="h4">FIRST.</div>
+<div class="cmt" id="cmt"><div class="who"><div class="av">?</div><div><div class="nm">What clients often hear</div><div class="sub">at the salon chair</div></div></div>
+<div class="q">“It’s just breakage. Don’t worry about it.”</div></div>
+<div class="strike"><div class="tagwrap"><div class="tag" id="tm">MYTH</div><div class="tag" id="tf">FACT</div></div>
+ <div class="boxwrap"><div class="box" id="bm">It’s just breakage.<div id="line"></div></div>
+ <div class="box" id="bf">Alopecia begins<br>below the scalp.</div></div></div>
+<div class="cap" id="cap"><span class="w">Breakage</span><span class="w">is</span><span class="w">above</span><br><span class="w">the</span><span class="w">scalp.</span><br><span class="w k">Alopecia is below it.</span></div>
+<div id="dim"></div>
+<svg id="sk" class="sk" width="1080" height="560" viewBox="0 0 1080 560">
+ <text id="r1" x="84" y="150">Recognize.</text><text id="r2" class="g" x="84" y="320">Respond.</text><text id="r3" x="84" y="490">Refer.</text></svg>
+<div class="endtxt" id="endtxt"><div class="url">beyondthehairline.com</div><div class="disc">This is for education, not medical advice.</div></div>
+<script src="gsap.min.js"></script><script>
+const tl=gsap.timeline({paused:true});
+// 1 kinetic hook 0-2.5
+tl.to("#hookdim",{opacity:1,duration:.2},0);
+["#h1","#h2","#h3","#h4"].forEach((s,i)=>tl.fromTo(s,{opacity:0,scale:2.4},{opacity:1,scale:1,duration:.28,ease:"power4.out"},0.15+i*.45));
+tl.to(".hook,#hookdim",{opacity:0,duration:.25},2.35);
+// 2 comment drop 2.6-5.5
+tl.fromTo("#cmt",{opacity:0,y:-500,rotation:-4},{opacity:1,y:0,rotation:0,duration:.6,ease:"bounce.out"},2.6);
+tl.to("#cmt",{opacity:0,y:-60,duration:.3},5.3);
+// 3 icon strike 5.6-9.0
+tl.fromTo("#tm",{opacity:0,scale:.6},{opacity:1,scale:1,duration:.25,ease:"back.out(2)"},5.6);
+tl.fromTo("#bm",{opacity:0,y:30},{opacity:1,y:0,duration:.3},5.7);
+const bm=document.getElementById('bm');
+tl.fromTo("#line",{width:0},{width:bm.offsetWidth-24,duration:.35,ease:"power2.inOut"},6.6);
+tl.to("#tm,#bm",{opacity:0,y:-30,duration:.25},7.3);
+tl.fromTo("#tf",{opacity:0,scale:.6},{opacity:1,scale:1,duration:.25,ease:"back.out(2)"},7.45);
+tl.fromTo("#bf",{opacity:0,y:30},{opacity:1,y:0,duration:.3,ease:"power3.out"},7.5);
+tl.to("#tf,#bf",{opacity:0,duration:.25},8.8);
+// 4 caption with giant word 9.0-12.4
+document.querySelectorAll('.w').forEach((w,i)=>tl.fromTo(w,{opacity:0,scale:.6,y:20},{opacity:1,scale:1,y:0,duration:.2,ease:"back.out(2.4)"},9.5+i*.22));
+tl.to("#cap",{opacity:0,duration:.25},12.3);
+// 5 sketch words 12.5-15.5
+tl.to("#dim",{opacity:1,duration:.4},12.45);
+["#r1","#r2","#r3"].forEach((s,i)=>{const el=document.querySelector(s);const L=el.getComputedTextLength()*3.2;
+  el.style.strokeDasharray=L; tl.fromTo(s,{strokeDashoffset:L},{strokeDashoffset:0,duration:.75,ease:"power1.inOut"},12.6+i*.45);
+  tl.to(s,{fill:i==1?"#F2C230":"#fff",duration:.35},13.25+i*.45);});
+tl.fromTo("#endtxt",{opacity:0,y:20},{opacity:1,y:0,duration:.4},14.2);
+window.__timelines={root:tl};
+</script></div></body></html>

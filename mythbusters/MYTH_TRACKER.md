@@ -92,3 +92,4 @@ Both carry a small "AI-generated" label (Meta asks for realistic AI content to b
 - Effects: video-through-letters opener "YOUR SCALP TALKS.", giant word "EARLY" behind Mary (person cutout), pop-in captions "Early answers can stop or slow more hair loss.", end card, original music.
 - Person cutout: MediaPipe selfie segmentation model (from npm @mediapipe/selfie_segmentation), run locally.
 - Filming guide for new clips: FILMING_GUIDE.md
+- Test reel 2: videos/reels/Reel_Test_StylistSeesItFirst.mp4 (15.5s, silent footage + original music). Footage: Mary's Canva design "Scarring Alopecia Videos" (page 2, gray blazer), audio removed. Effects: kinetic hook, comment drop, icon strike (myth to fact), giant word "BELOW" behind Mary, sketch words end card. Facts from Dr. Boler slide 5 (breakage above, alopecia below). Awaiting Mary's review.
